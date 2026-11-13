@@ -73,7 +73,8 @@ body {
 
 /* Form fields: pressed into the surface */
 @utility input {
-  @apply neu-in-sm w-full min-w-0 rounded-xl border-0 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition;
+  @apply neu-in-sm w-full min-w-0 rounded-xl border border-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition;
+  background: #1b212d;
   &:focus { box-shadow: inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light), 0 0 0 2px rgb(107 149 255 / 0.65); }
   &:disabled { @apply opacity-60; }
 }
