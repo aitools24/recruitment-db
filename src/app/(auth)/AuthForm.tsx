@@ -16,7 +16,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setBusy(true);
     try {
       await api(`/api/auth/${mode}`, { method: "POST", json: Object.fromEntries(new FormData(e.currentTarget)) });
-      router.push("/candidates");
+      router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setError((err as Error).message);

@@ -21,7 +21,7 @@ type Props = {
 type Result = { rows: SearchRow[]; total: number; page: number; pageSize: number };
 
 const MULTI = ["industry", "source", "status"];
-const FIELDS = ["q", "skills", "skillsMode", "tags", "expMin", "expMax", "ctcMin", "ctcMax", "noticeMax", "location", "company", "title", "degree", "ownerId", "addedFrom", "addedTo", "sort", ...MULTI];
+const FIELDS = ["q", "skills", "skillsMode", "tags", "expMin", "expMax", "ctcMin", "ctcMax", "noticeMin", "noticeMax", "location", "company", "title", "degree", "ownerId", "addedFrom", "addedTo", "sort", ...MULTI];
 
 export default function CandidateSearch(p: Props) {
   const router = useRouter();

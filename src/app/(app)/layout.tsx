@@ -7,6 +7,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const s = await requirePage();
   const tenant = await prisma.tenant.findUniqueOrThrow({ where: { id: s.tenantId }, select: { name: true } });
   const links = [
+    { href: "/dashboard", label: "Dashboard", show: true },
     { href: "/candidates", label: "Candidates", show: true },
     { href: "/candidates/new", label: "Add candidate", show: can(s.role, "editCandidates") },
     { href: "/import", label: "Import", show: can(s.role, "importData") },
