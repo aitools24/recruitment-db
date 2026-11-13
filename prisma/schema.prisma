@@ -1,0 +1,175 @@
+// Multi-tenant schema: every business table carries tenantId and every query
+// in src/lib is scoped by the signed-in user's tenant.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  RECRUITER
+  VIEWER
+}
+
+model Tenant {
+  id             String   @id @default(cuid())
+  name           String
+  // Export controls (Settings > Export)
+  exportRoles    Role[]   @default([ADMIN, MANAGER])
+  exportMaxRows  Int      @default(1000)
+  createdAt      DateTime @default(now())
+
+  users      User[]
+  candidates Candidate[]
+  resumes    Resume[]
+  notes      Note[]
+  auditLogs  AuditLog[]
+  imports    ImportJob[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(RECRUITER)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  ownedCandidates Candidate[] @relation("owner")
+  notes           Note[]
+  auditLogs       AuditLog[]
+
+  @@index([tenantId])
+}
+
+model Candidate {
+  id             String    @id @default(cuid())
+  tenantId       String
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  fullName       String
+  email          String?
+  emailLower     String?   // normalised for duplicate detection
+  phone          String?
+  phoneNormalized String?  // last 10 digits, for duplicate detection
+  altPhone       String?
+  location       String?
+  linkedinUrl    String?
+
+  currentCompany String?
+  currentTitle   String?
+  industry       String?
+  functionalArea String?
+  totalExperience Float?   // years
+  currentCtc     Float?    // lakhs per annum (LPA)
+  expectedCtc    Float?    // lakhs per annum (LPA)
+  noticePeriodDays Int?
+
+  highestDegree  String?
+  college        String?
+  education      String?
+  certifications String?
+  languages      String?
+
+  skills         String[]  @default([]) // lower-cased skill tags
+  tags           String[]  @default([]) // lower-cased free tags
+  source         String?   // LinkedIn, Naukri, Referral, Job portal, Walk-in, Other
+  status         String    @default("Active")
+  customFields   Json?
+
+  resumeText     String?   // text of the latest resume, indexed for full-text search
+  // searchVector tsvector is a generated column added in the init migration.
+  searchVector   Unsupported("tsvector")?
+
+  ownerId        String?
+  owner          User?     @relation("owner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  resumes   Resume[]
+  notes     Note[]
+  auditLogs AuditLog[]
+
+  @@index([tenantId, emailLower])
+  @@index([tenantId, phoneNormalized])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, industry])
+}
+
+model Resume {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  version     Int       @default(1)
+  fileName    String
+  mimeType    String
+  size        Int
+  storageKey  String
+  text        String?
+  uploadedById String?
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId, candidateId])
+}
+
+model Note {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  authorId    String?
+  author      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  body        String
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId, candidateId])
+}
+
+// Activity + audit trail: who viewed, created, edited, imported, exported, merged or deleted what.
+model AuditLog {
+  id          String     @id @default(cuid())
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  candidateId String?
+  candidate   Candidate? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  action      String     // VIEW, CREATE, UPDATE, DELETE, NOTE, RESUME_UPLOAD, RESUME_DOWNLOAD, IMPORT, EXPORT, MERGE, USER_*
+  message     String
+  meta        Json?
+  createdAt   DateTime   @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, candidateId])
+}
+
+model ImportJob {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String?
+  kind       String   // SPREADSHEET or RESUMES
+  fileName   String
+  total      Int      @default(0)
+  created    Int      @default(0)
+  updated    Int      @default(0)
+  skipped    Int      @default(0)
+  failed     Int      @default(0)
+  errors     Json?
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+}
