@@ -64,7 +64,7 @@ export default function CandidateSearch(p: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Candidates</h1>
+        <div><h1 className="text-2xl font-semibold tracking-tight text-slate-100">Candidates</h1><p className="text-sm text-slate-400">Search your whole database, including resume text.</p></div>
         <div className="flex flex-wrap gap-2">
           {p.canExport && (
             <>
@@ -76,8 +76,8 @@ export default function CandidateSearch(p: Props) {
         </div>
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); update({ q: q.trim() || null }); }} className="flex flex-wrap gap-2">
-        <input value={q} onChange={(e) => setQ(e.target.value)} className="input flex-1 basis-full py-2 text-base sm:basis-0"
+      <form onSubmit={(e) => { e.preventDefault(); update({ q: q.trim() || null }); }} className="card flex flex-wrap items-center gap-3 p-3">
+        <input value={q} onChange={(e) => setQ(e.target.value)} className="input flex-1 basis-full py-2.5 text-base sm:basis-0"
           placeholder='Search names, skills, companies and resume text… e.g. java spring -intern' />
         <button className="btn-primary px-4">Search</button>
         <button type="button" className="btn-secondary" onClick={() => setShowFilters(!showFilters)}>
@@ -86,7 +86,7 @@ export default function CandidateSearch(p: Props) {
         <button type="button" className="btn-ghost text-xs" onClick={() => setShowHelp(!showHelp)}>Search tips</button>
       </form>
       {showHelp && (
-        <div className="card p-3 text-sm text-gray-700">
+        <div className="card p-3 text-sm text-slate-200">
           <ul className="list-disc space-y-1 pl-5">
             <li><code>java spring</code> finds candidates with both words anywhere in their profile or resume.</li>
             <li><code>java or python</code> finds either word.</li>
@@ -99,7 +99,7 @@ export default function CandidateSearch(p: Props) {
 
       {showFilters && <Filters {...p} sp={sp} update={update} />}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-300">
         <span>{loading ? "Searching…" : data ? `${data.total.toLocaleString("en-IN")} candidate${data.total === 1 ? "" : "s"}` : ""}</span>
         <label className="flex items-center gap-2">Sort
           <select className="input w-auto py-1" value={sp.get("sort") ?? ""} onChange={(e) => update({ sort: e.target.value || null })}>
@@ -112,21 +112,21 @@ export default function CandidateSearch(p: Props) {
         </label>
       </div>
 
-      {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="neu-in-sm rounded-xl px-3 py-2 text-sm text-red-300">{error}</p>}
 
       <div className="card overflow-x-auto">
         <table className="w-full min-w-[800px]">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/[0.06] bg-white/[0.03]">
             <tr><th className="th">Candidate</th><th className="th">Experience</th><th className="th">CTC (cur / exp)</th><th className="th">Notice</th><th className="th">Location</th><th className="th">Skills</th><th className="th">Owner</th></tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/[0.05]">
             {data?.rows.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-50">
+              <tr key={c.id} className="transition hover:bg-white/[0.025]">
                 <td className="td max-w-xs">
-                  <Link href={`/candidates/${c.id}`} className="font-medium text-brand-700 hover:underline">{c.fullName}</Link>
-                  <div className="text-xs text-gray-600">{[c.currentTitle, c.currentCompany].filter(Boolean).join(" at ")}</div>
-                  {c.industry && <div className="text-xs text-gray-400">{c.industry}</div>}
-                  {c.snippet && <div className="mt-1 text-xs text-gray-500"><Highlight text={c.snippet} /></div>}
+                  <Link href={`/candidates/${c.id}`} className="font-medium text-brand-300 hover:underline">{c.fullName}</Link>
+                  <div className="text-xs text-slate-300">{[c.currentTitle, c.currentCompany].filter(Boolean).join(" at ")}</div>
+                  {c.industry && <div className="text-xs text-slate-400">{c.industry}</div>}
+                  {c.snippet && <div className="mt-1 text-xs text-slate-400"><Highlight text={c.snippet} /></div>}
                 </td>
                 <td className="td whitespace-nowrap">{formatExp(c.totalExperience)}</td>
                 <td className="td whitespace-nowrap">{[formatCtc(c.currentCtc), formatCtc(c.expectedCtc)].filter(Boolean).join(" / ")}</td>
@@ -135,15 +135,15 @@ export default function CandidateSearch(p: Props) {
                 <td className="td max-w-[220px]">
                   <div className="flex flex-wrap gap-1">
                     {c.skills.slice(0, 5).map((s) => <span key={s} className="chip">{s}</span>)}
-                    {c.skills.length > 5 && <span className="text-xs text-gray-400">+{c.skills.length - 5}</span>}
+                    {c.skills.length > 5 && <span className="px-1 text-xs text-slate-400">+{c.skills.length - 5}</span>}
                     {c.tags.map((t) => <span key={t} className="chip-blue">#{t}</span>)}
                   </div>
                 </td>
-                <td className="td whitespace-nowrap text-gray-600">{c.ownerName}</td>
+                <td className="td whitespace-nowrap text-slate-300">{c.ownerName}</td>
               </tr>
             ))}
             {data && !data.rows.length && (
-              <tr><td colSpan={7} className="td py-10 text-center text-gray-500">No candidates match. Try fewer filters, or <Link className="text-brand-600 hover:underline" href="/import">import some candidates</Link>.</td></tr>
+              <tr><td colSpan={7} className="td py-10 text-center text-slate-400">No candidates match. Try fewer filters, or <Link className="text-brand-300 hover:underline" href="/import">import some candidates</Link>.</td></tr>
             )}
           </tbody>
         </table>
@@ -231,7 +231,7 @@ function Checks({ label, options, value, onToggle }: { label: string; options: s
       <div className="flex flex-wrap gap-1.5">
         {options.map((o) => (
           <button type="button" key={o} onClick={() => onToggle(o)}
-            className={`rounded-full border px-2.5 py-0.5 text-xs ${value.includes(o) ? "border-brand-500 bg-brand-50 text-brand-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+            className={`rounded-full px-3 py-1 text-xs transition ${value.includes(o) ? "neu-in-sm font-medium text-brand-300 ring-1 ring-brand-400/50" : "neu-sm text-slate-300 hover:text-white"}`}>
             {o}
           </button>
         ))}

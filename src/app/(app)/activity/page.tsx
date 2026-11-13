@@ -19,8 +19,8 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   return (
     <div className="max-w-6xl space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Activity log</h1>
-        <p className="text-sm text-gray-600">Who viewed, edited, imported, exported, merged or deleted what.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Activity log</h1>
+        <p className="text-sm text-slate-300">Who viewed, edited, imported, exported, merged or deleted what.</p>
       </div>
       <form className="flex flex-wrap gap-2">
         <select name="action" defaultValue={sp.action ?? ""} className="input w-auto"><option value="">All actions</option>{ACTIONS.map((a) => <option key={a} value={a}>{a.replace("_", " ").toLowerCase()}</option>)}</select>
@@ -29,18 +29,18 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
       </form>
       <div className="card overflow-x-auto">
         <table className="w-full min-w-[640px]">
-          <thead className="border-b border-gray-200 bg-gray-50"><tr><th className="th">When</th><th className="th">User</th><th className="th">Action</th><th className="th">Candidate</th><th className="th">Details</th></tr></thead>
-          <tbody className="divide-y divide-gray-100">
+          <thead className="border-b border-white/[0.06] bg-white/[0.03]"><tr><th className="th">When</th><th className="th">User</th><th className="th">Action</th><th className="th">Candidate</th><th className="th">Details</th></tr></thead>
+          <tbody className="divide-y divide-white/[0.05]">
             {logs.map((l) => (
               <tr key={l.id}>
                 <td className="td whitespace-nowrap">{l.createdAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
                 <td className="td">{l.user?.name ?? "—"}</td>
-                <td className="td"><span className={`chip ${l.action === "EXPORT" || l.action === "DELETE" ? "bg-amber-50 text-amber-800" : ""}`}>{l.action.replace("_", " ").toLowerCase()}</span></td>
-                <td className="td">{l.candidate && <Link className="text-brand-700 hover:underline" href={`/candidates/${l.candidate.id}`}>{l.candidate.fullName}</Link>}</td>
-                <td className="td text-gray-700">{l.message}</td>
+                <td className="td"><span className={`chip ${l.action === "EXPORT" || l.action === "DELETE" ? "text-amber-300" : ""}`}>{l.action.replace("_", " ").toLowerCase()}</span></td>
+                <td className="td">{l.candidate && <Link className="text-brand-300 hover:underline" href={`/candidates/${l.candidate.id}`}>{l.candidate.fullName}</Link>}</td>
+                <td className="td text-slate-200">{l.message}</td>
               </tr>
             ))}
-            {!logs.length && <tr><td colSpan={5} className="td py-6 text-center text-gray-400">Nothing here yet.</td></tr>}
+            {!logs.length && <tr><td colSpan={5} className="td py-6 text-center text-slate-400">Nothing here yet.</td></tr>}
           </tbody>
         </table>
       </div>

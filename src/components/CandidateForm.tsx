@@ -67,7 +67,7 @@ export default function CandidateForm({ initial, users, industries, sources, sta
         {F({ k: "linkedinUrl", label: "LinkedIn URL" })}
       </Section>
       {dups.length > 0 && (
-        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="neu-in rounded-2xl border border-amber-400/25 p-4 text-sm text-amber-300">
           <div className="font-medium">Possible duplicate{dups.length > 1 ? "s" : ""} already in the database:</div>
           <ul className="mt-1 list-disc pl-5">
             {dups.map((d) => <li key={d.id}><Link className="underline" href={`/candidates/${d.id}`} target="_blank">{d.fullName}</Link> {[d.email, d.phone, d.currentCompany].filter(Boolean).join(" · ")}</li>)}
@@ -106,7 +106,7 @@ export default function CandidateForm({ initial, users, industries, sources, sta
         <div><label className="label">Owner recruiter</label><select className="input" value={v.ownerId} onChange={set("ownerId")}>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select></div>
         {F({ k: "tags", label: "Tags (comma separated)", placeholder: "hot, client-x" })}
       </Section>
-      {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="neu-in-sm rounded-xl px-3 py-2 text-sm text-red-300">{error}</p>}
       <div className="flex flex-wrap gap-2">
         <button className="btn-primary" disabled={busy}>{busy ? "Saving…" : editing ? "Save changes" : "Add candidate"}</button>
         {dups.length > 0 && <button type="button" className="btn-secondary" disabled={busy} onClick={() => save(true)}>Save anyway</button>}
@@ -118,8 +118,8 @@ export default function CandidateForm({ initial, users, industries, sources, sta
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="card p-4">
-      <h2 className="mb-3 text-sm font-semibold text-gray-800">{title}</h2>
+    <section className="card p-5">
+      <h2 className="mb-3 text-sm font-semibold text-slate-100">{title}</h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
     </section>
   );

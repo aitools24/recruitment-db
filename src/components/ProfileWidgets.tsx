@@ -18,9 +18,9 @@ export function TagEditor({ id, tags, canEdit }: { id: string; tags: string[]; c
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {tags.map((t) => (
-        <span key={t} className="chip-blue">#{t}{canEdit && <button disabled={busy} onClick={() => save(tags.filter((x) => x !== t))} className="ml-0.5 text-brand-500 hover:text-red-600" aria-label={`Remove ${t}`}>×</button>}</span>
+        <span key={t} className="chip-blue">#{t}{canEdit && <button disabled={busy} onClick={() => save(tags.filter((x) => x !== t))} className="ml-0.5 text-brand-300 hover:text-red-300" aria-label={`Remove ${t}`}>×</button>}</span>
       ))}
-      {!tags.length && !canEdit && <span className="text-sm text-gray-400">No tags</span>}
+      {!tags.length && !canEdit && <span className="text-sm text-slate-400">No tags</span>}
       {canEdit && (
         <form onSubmit={(e) => { e.preventDefault(); if (value.trim()) save([...tags, ...value.split(",")]); }} className="flex gap-1">
           <input value={value} onChange={(e) => setValue(e.target.value)} className="input w-36 py-0.5 text-xs" placeholder="Add tag" />
@@ -48,7 +48,7 @@ export function NotesPanel({ id, notes, canEdit }: { id: string; notes: { id: st
     setBusy(false);
   }
   return (
-    <section className="card p-4">
+    <section className="card p-5">
       <h2 className="mb-2 text-sm font-semibold">Notes</h2>
       {canEdit && (
         <form onSubmit={add} className="mb-3 space-y-2">
@@ -60,10 +60,10 @@ export function NotesPanel({ id, notes, canEdit }: { id: string; notes: { id: st
         {notes.map((n) => (
           <li key={n.id} className="text-sm">
             <p className="whitespace-pre-wrap">{n.body}</p>
-            <div className="text-xs text-gray-400">{n.author} · {n.createdAt}</div>
+            <div className="text-xs text-slate-400">{n.author} · {n.createdAt}</div>
           </li>
         ))}
-        {!notes.length && <li className="text-sm text-gray-400">No notes yet.</li>}
+        {!notes.length && <li className="text-sm text-slate-400">No notes yet.</li>}
       </ul>
     </section>
   );

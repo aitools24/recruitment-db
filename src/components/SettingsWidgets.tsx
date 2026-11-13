@@ -30,11 +30,11 @@ export function TeamManager({ users, me, isAdmin }: { users: U[]; me: string; is
   return (
     <div className="card overflow-x-auto">
       <table className="w-full min-w-[560px]">
-        <thead className="border-b border-gray-200 bg-gray-50"><tr><th className="th">Name</th><th className="th">Email</th><th className="th">Role</th><th className="th">Status</th>{isAdmin && <th className="th"></th>}</tr></thead>
-        <tbody className="divide-y divide-gray-100">
+        <thead className="border-b border-white/[0.06] bg-white/[0.03]"><tr><th className="th">Name</th><th className="th">Email</th><th className="th">Role</th><th className="th">Status</th>{isAdmin && <th className="th"></th>}</tr></thead>
+        <tbody className="divide-y divide-white/[0.05]">
           {users.map((u) => (
-            <tr key={u.id} className={u.active ? "" : "text-gray-400"}>
-              <td className="td">{u.name}{u.id === me && <span className="ml-1 text-xs text-gray-400">(you)</span>}</td>
+            <tr key={u.id} className={u.active ? "" : "text-slate-400"}>
+              <td className="td">{u.name}{u.id === me && <span className="ml-1 text-xs text-slate-400">(you)</span>}</td>
               <td className="td">{u.email}</td>
               <td className="td">
                 {isAdmin && u.id !== me ? (
@@ -53,7 +53,7 @@ export function TeamManager({ users, me, isAdmin }: { users: U[]; me: string; is
         </tbody>
       </table>
       {isAdmin && (
-        <div className="border-t border-gray-100 p-3">
+        <div className="border-t border-white/[0.06] p-3">
           {adding ? (
             <form onSubmit={add} className="grid gap-2 sm:grid-cols-5">
               <input name="name" required minLength={2} placeholder="Name" className="input" />
@@ -61,8 +61,8 @@ export function TeamManager({ users, me, isAdmin }: { users: U[]; me: string; is
               <select name="role" className="input" defaultValue="RECRUITER">{ROLES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
               <input name="password" required minLength={8} placeholder="Temporary password" className="input" />
               <div className="flex gap-1"><button className="btn-primary">Add</button><button type="button" className="btn-ghost" onClick={() => setAdding(false)}>Cancel</button></div>
-              {error && <p className="text-sm text-red-700 sm:col-span-5">{error}</p>}
-              <p className="text-xs text-gray-500 sm:col-span-5">Share the temporary password with them privately. They can change it under My account after signing in.</p>
+              {error && <p className="text-sm text-red-300 sm:col-span-5">{error}</p>}
+              <p className="text-xs text-slate-400 sm:col-span-5">Share the temporary password with them privately. They can change it under My account after signing in.</p>
             </form>
           ) : <button className="btn-secondary" onClick={() => setAdding(true)}>+ Add team member</button>}
         </div>
@@ -83,9 +83,9 @@ export function ExportSettings({ isAdmin, roles, maxRows }: { isAdmin: boolean; 
     } catch (e) { alert((e as Error).message); }
   }
   return (
-    <section className="card p-4">
+    <section className="card p-5">
       <h2 className="mb-1 text-sm font-semibold">Export controls</h2>
-      <p className="mb-3 text-xs text-gray-600">Choose who can download candidate data as CSV/Excel, and the most rows one export can contain. Every export is recorded in the activity log.</p>
+      <p className="mb-3 text-xs text-slate-300">Choose who can download candidate data as CSV/Excel, and the most rows one export can contain. Every export is recorded in the activity log.</p>
       <div className="flex flex-wrap gap-4 text-sm">
         {ROLES.map(([k, l]) => (
           <label key={k} className="flex items-center gap-1.5">
@@ -96,9 +96,9 @@ export function ExportSettings({ isAdmin, roles, maxRows }: { isAdmin: boolean; 
       <div className="mt-3 flex items-end gap-2">
         <div><label className="label">Max rows per export</label><input type="number" min={1} max={100000} disabled={!isAdmin} className="input w-36" value={max} onChange={(e) => { setSaved(false); setMax(e.target.value); }} /></div>
         {isAdmin && <button className="btn-primary" onClick={save}>Save</button>}
-        {saved && <span className="text-sm text-green-700">Saved</span>}
+        {saved && <span className="text-sm text-green-300">Saved</span>}
       </div>
-      {!isAdmin && <p className="mt-2 text-xs text-gray-500">Only Admins can change these.</p>}
+      {!isAdmin && <p className="mt-2 text-xs text-slate-400">Only Admins can change these.</p>}
     </section>
   );
 }
@@ -112,13 +112,13 @@ export function MyAccount({ id, name }: { id: string; name: string }) {
     try { await api(`/api/users/${id}`, { method: "PATCH", json: { password: pw } }); setMsg("Password changed"); form.reset(); } catch (err) { setMsg((err as Error).message); }
   }
   return (
-    <section className="card p-4">
+    <section className="card p-5">
       <h2 className="mb-2 text-sm font-semibold">My account</h2>
-      <p className="mb-2 text-sm text-gray-600">Signed in as {name}.</p>
+      <p className="mb-2 text-sm text-slate-300">Signed in as {name}.</p>
       <form onSubmit={change} className="flex flex-wrap items-end gap-2">
         <div><label className="label">New password</label><input name="password" type="password" minLength={8} required className="input w-56" autoComplete="new-password" /></div>
         <button className="btn-secondary">Change password</button>
-        {msg && <span className="text-sm text-gray-600">{msg}</span>}
+        {msg && <span className="text-sm text-slate-300">{msg}</span>}
       </form>
     </section>
   );
