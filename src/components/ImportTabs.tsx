@@ -162,7 +162,7 @@ function SpreadsheetImport({ fields, sources }: { fields: Field[]; sources: stri
       </div>
 
       <div className="card p-4">
-        <h2 className="mb-3 font-semibold">3. Preview <span className="font-normal text-gray-500">(first {preview.length} rows; values like (first {preview.length} rows as they will be imported)quot;12,00,000(first {preview.length} rows as they will be imported)quot; or (first {preview.length} rows as they will be imported)quot;2 months(first {preview.length} rows as they will be imported)quot; are converted on import)</span></h2>
+        <h2 className="mb-3 font-semibold">3. Preview <span className="font-normal text-gray-500">(first {preview.length} rows; values like &quot;12,00,000&quot; or &quot;2 months&quot; are converted on import)</span></h2>
         {shownFields.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
