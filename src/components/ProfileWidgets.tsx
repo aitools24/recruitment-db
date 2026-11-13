@@ -18,7 +18,7 @@ export function TagEditor({ id, tags, canEdit }: { id: string; tags: string[]; c
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {tags.map((t) => (
-        <span key={t} className="chip-blue">#{t}{canEdit && <button disabled={busy} onClick={() => save(tags.filter((x) => x !== t))} className="ml-0.5 text-brand-300 hover:text-red-300" aria-label={`Remove ${t}`}>×</button>}</span>
+        <span key={t} className="accent-chip" style={{ ["--accent" as string]: "#d55181" }}>#{t}{canEdit && <button disabled={busy} onClick={() => save(tags.filter((x) => x !== t))} className="ml-0.5 text-brand-300 hover:text-red-300" aria-label={`Remove ${t}`}>×</button>}</span>
       ))}
       {!tags.length && !canEdit && <span className="text-sm text-slate-400">No tags</span>}
       {canEdit && (

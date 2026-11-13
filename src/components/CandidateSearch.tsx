@@ -7,6 +7,7 @@ import { api } from "./api";
 import Highlight from "./Highlight";
 import { formatCtc, formatExp, formatNotice } from "@/lib/normalize";
 import type { SearchRow } from "@/lib/candidates";
+import { SERIES, SOURCE_COLOR, STATUS_COLOR, NEUTRAL, accent } from "@/lib/colors";
 
 type Props = {
   users: { id: string; name: string }[];
@@ -117,13 +118,16 @@ export default function CandidateSearch(p: Props) {
       <div className="card overflow-x-auto">
         <table className="w-full min-w-[800px]">
           <thead className="border-b border-white/[0.06] bg-white/[0.03]">
-            <tr><th className="th">Candidate</th><th className="th">Experience</th><th className="th">CTC (cur / exp)</th><th className="th">Notice</th><th className="th">Location</th><th className="th">Skills</th><th className="th">Owner</th></tr>
+            <tr><th className="th">Candidate</th><th className="th">Experience</th><th className="th">CTC (cur / exp)</th><th className="th">Notice</th><th className="th">Location</th><th className="th">Skills</th><th className="th">Owner / source</th></tr>
           </thead>
           <tbody className="divide-y divide-white/[0.05]">
             {data?.rows.map((c) => (
               <tr key={c.id} className="transition hover:bg-white/[0.025]">
                 <td className="td max-w-xs">
-                  <Link href={`/candidates/${c.id}`} className="font-medium text-brand-300 hover:underline">{c.fullName}</Link>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={`/candidates/${c.id}`} className="font-medium text-brand-300 hover:underline">{c.fullName}</Link>
+                    {c.status !== "Active" && <span className="accent-chip" style={accent(STATUS_COLOR[c.status] ?? NEUTRAL)}>{c.status}</span>}
+                  </div>
                   <div className="text-xs text-slate-300">{[c.currentTitle, c.currentCompany].filter(Boolean).join(" at ")}</div>
                   {c.industry && <div className="text-xs text-slate-400">{c.industry}</div>}
                   {c.snippet && <div className="mt-1 text-xs text-slate-400"><Highlight text={c.snippet} /></div>}
@@ -136,10 +140,13 @@ export default function CandidateSearch(p: Props) {
                   <div className="flex flex-wrap gap-1">
                     {c.skills.slice(0, 5).map((s) => <span key={s} className="chip">{s}</span>)}
                     {c.skills.length > 5 && <span className="px-1 text-xs text-slate-400">+{c.skills.length - 5}</span>}
-                    {c.tags.map((t) => <span key={t} className="chip-blue">#{t}</span>)}
+                    {c.tags.map((t) => <span key={t} className="accent-chip" style={accent(SERIES[4])}>#{t}</span>)}
                   </div>
                 </td>
-                <td className="td whitespace-nowrap text-slate-300">{c.ownerName}</td>
+                <td className="td whitespace-nowrap text-slate-300">
+                  <div>{c.ownerName}</div>
+                  {c.source && <span className="accent-chip mt-1" style={accent(SOURCE_COLOR[c.source] ?? NEUTRAL)}>{c.source}</span>}
+                </td>
               </tr>
             ))}
             {data && !data.rows.length && (
@@ -213,8 +220,8 @@ function Filters({ users, industries, sources, statuses, sp, update }: Props & {
       </div>
       <Checks label="Industry" options={industries} value={multi.industry} onToggle={(v) => toggle("industry", v)} />
       <div className="grid gap-4 sm:grid-cols-2">
-        <Checks label="Source" options={sources} value={multi.source} onToggle={(v) => toggle("source", v)} />
-        <Checks label="Status" options={statuses} value={multi.status} onToggle={(v) => toggle("status", v)} />
+        <Checks label="Source" options={sources} value={multi.source} onToggle={(v) => toggle("source", v)} colors={SOURCE_COLOR} />
+        <Checks label="Status" options={statuses} value={multi.status} onToggle={(v) => toggle("status", v)} colors={STATUS_COLOR} />
       </div>
       <div className="flex gap-2">
         <button className="btn-primary">Apply filters</button>
@@ -224,13 +231,13 @@ function Filters({ users, industries, sources, statuses, sp, update }: Props & {
   );
 }
 
-function Checks({ label, options, value, onToggle }: { label: string; options: string[]; value: string[]; onToggle: (v: string) => void }) {
+function Checks({ label, options, value, onToggle, colors }: { label: string; options: string[]; value: string[]; onToggle: (v: string) => void; colors?: Record<string, string> }) {
   return (
     <div>
       <div className="label">{label}</div>
       <div className="flex flex-wrap gap-1.5">
         {options.map((o) => (
-          <button type="button" key={o} onClick={() => onToggle(o)}
+          <button type="button" key={o} onClick={() => onToggle(o)} style={value.includes(o) && colors?.[o] ? { ...accent(colors[o]), color: `color-mix(in oklab, ${colors[o]} 55%, white)`, boxShadow: `inset 2px 2px 5px #151a23, inset -2px -2px 5px #2a3347, 0 0 0 1px ${colors[o]}` } : undefined}
             className={`rounded-full px-3 py-1 text-xs transition ${value.includes(o) ? "neu-in-sm font-medium text-brand-300 ring-1 ring-brand-400/50" : "neu-sm text-slate-300 hover:text-white"}`}>
             {o}
           </button>

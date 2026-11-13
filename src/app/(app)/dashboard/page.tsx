@@ -3,6 +3,7 @@ import { requirePage } from "@/lib/auth";
 import { dashboardData } from "@/lib/dashboard";
 import { can } from "@/lib/permissions";
 import { BarList, Panel, StatTile, WeeklyColumns } from "@/components/DashboardCharts";
+import { NEUTRAL, SERIES, SOURCE_COLOR, actionColor } from "@/lib/colors";
 
 const fmt = (v: number) => v.toLocaleString("en-IN");
 const ago = (d: Date) => {
@@ -43,40 +44,40 @@ export default async function Dashboard() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatTile label="Total candidates" value={fmt(t.total)} sub={`${fmt(t.active)} active · ${fmt(t.withResume)} with resume`} href="/candidates" />
-            <StatTile label="Added in last 30 days" value={fmt(t.month)}
+            <StatTile icon="users" color={SERIES[0]} label="Total candidates" value={fmt(t.total)} sub={`${fmt(t.active)} active · ${fmt(t.withResume)} with resume`} href="/candidates" />
+            <StatTile icon="trend" color={SERIES[2]} label="Added in last 30 days" value={fmt(t.month)}
               sub={delta === null || delta === 0 ? `${fmt(t.week)} this week${delta === 0 ? " · same as previous 30 days" : ""}` : <><span className={delta >= 0 ? "text-emerald-300" : "text-red-300"}>{delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}%</span> vs previous 30 days</>}
               href={`/candidates?addedFrom=${since(30)}`} />
-            <StatTile label="Can join within 15 days" value={fmt(t.quickJoin)} sub={pct(t.quickJoin)} href="/candidates?noticeMax=15" />
-            <StatTile label="Average experience" value={t.avgExp === null ? "—" : `${t.avgExp} yrs`}
+            <StatTile icon="clock" color={SERIES[5]} label="Can join within 15 days" value={fmt(t.quickJoin)} sub={pct(t.quickJoin)} href="/candidates?noticeMax=15" />
+            <StatTile icon="briefcase" color={SERIES[6]} label="Average experience" value={t.avgExp === null ? "—" : `${t.avgExp} yrs`}
               sub={t.duplicates ? <Link href="/duplicates" className="text-amber-300 hover:underline">⚠ {t.duplicates} possible duplicate{t.duplicates === 1 ? "" : "s"}</Link> : "No duplicates found"} />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Panel title="Candidates added per week" sub="Last 12 weeks" className="lg:col-span-2">
+            <Panel title="Candidates added per week" sub="Last 12 weeks" className="lg:col-span-2" color={SERIES[0]}>
               <WeeklyColumns data={d.weekly} />
             </Panel>
             <Panel title="By source" sub="Where candidates came from">
-              <BarList rows={d.source} total={t.total} />
+              <BarList rows={d.source.map((r) => ({ ...r, color: SOURCE_COLOR[r.label] ?? NEUTRAL }))} total={t.total} />
             </Panel>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Panel title="By industry"><BarList rows={d.industry} total={t.total} /></Panel>
-            <Panel title="Top skills" sub="Share of candidates with each skill"><BarList rows={d.skills} total={t.total} empty="No skills recorded yet" /></Panel>
-            <Panel title="By recruiter" sub="Candidates owned (added in last 30 days)">
-              <BarList rows={d.owners.map((o) => ({ ...o, label: `${o.label} (${o.month})` }))} total={t.total} />
+            <Panel title="By industry" color={SERIES[2]}><BarList rows={d.industry} total={t.total} color={SERIES[2]} /></Panel>
+            <Panel title="Top skills" sub="Share of candidates with each skill" color={SERIES[6]}><BarList rows={d.skills} total={t.total} empty="No skills recorded yet" color={SERIES[6]} /></Panel>
+            <Panel title="By recruiter" sub="Candidates owned (added in last 30 days)" color={SERIES[1]}>
+              <BarList rows={d.owners.map((o) => ({ ...o, label: `${o.label} (${o.month})` }))} total={t.total} color={SERIES[1]} />
             </Panel>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Panel title="Notice period"><BarList rows={d.notice} total={t.total} /></Panel>
-            <Panel title="Total experience"><BarList rows={d.experience} total={t.total} /></Panel>
-            <Panel title="Recent activity">
+            <Panel title="Notice period" color={SERIES[5]}><BarList rows={d.notice} total={t.total} color={SERIES[5]} /></Panel>
+            <Panel title="Total experience" color={SERIES[3]}><BarList rows={d.experience} total={t.total} color={SERIES[3]} /></Panel>
+            <Panel title="Recent activity" color={SERIES[4]}>
               <ul className="space-y-3 text-sm">
                 {d.recentActivity.map((a) => (
                   <li key={a.id} className="flex gap-3">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" aria-hidden />
+                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: actionColor(a.action) }} aria-hidden />
                     <div className="min-w-0">
                       <div className="text-slate-200">
                         {a.candidate ? <Link className="text-brand-300 hover:underline" href={`/candidates/${a.candidate.id}`}>{a.candidate.fullName}</Link> : null}

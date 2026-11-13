@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { can } from "@/lib/permissions";
 import { formatCtc, formatExp, formatNotice } from "@/lib/normalize";
+import { NEUTRAL, SOURCE_COLOR, STATUS_COLOR, accent } from "@/lib/colors";
 import { DeleteCandidate, NotesPanel, ResumeUpload, TagEditor } from "@/components/ProfileWidgets";
 
 const dt = (d: Date) => d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -41,7 +42,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
     ["Certifications", c.certifications],
     ["Languages", c.languages],
     ["LinkedIn", c.linkedinUrl && <a className="break-all text-brand-300 hover:underline" target="_blank" rel="noreferrer" href={c.linkedinUrl.startsWith("http") ? c.linkedinUrl : `https://${c.linkedinUrl}`}>{c.linkedinUrl}</a>],
-    ["Source", c.source],
+    ["Source", c.source && <span className="accent-chip" style={accent(SOURCE_COLOR[c.source] ?? NEUTRAL)}>{c.source}</span>],
     ["Owner", c.owner?.name],
     ["Added", dt(c.createdAt)],
     ["Updated", dt(c.updatedAt)],
@@ -54,7 +55,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-100">{c.fullName}</h1>
           <p className="text-slate-300">{[c.currentTitle, c.currentCompany].filter(Boolean).join(" at ") || "No current role recorded"}</p>
-          <span className={`neu-in-sm mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs ${c.status === "Active" ? "text-emerald-300" : c.status === "Do not contact" ? "text-red-300" : "text-slate-300"}`}>{c.status}</span>
+          <span className="accent-chip mt-2" style={accent(STATUS_COLOR[c.status] ?? NEUTRAL)}>{c.status}</span>
         </div>
         <div className="flex gap-2">
           {canEdit && <Link href={`/candidates/${c.id}/edit`} className="btn-secondary">Edit profile</Link>}

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "./api";
+import { ROLE_COLOR, accent } from "@/lib/colors";
 
 const ROLES = [["ADMIN", "Admin"], ["MANAGER", "Manager"], ["RECRUITER", "Recruiter"], ["VIEWER", "View-only"]] as const;
 type U = { id: string; name: string; email: string; role: string; active: boolean };
@@ -39,7 +40,7 @@ export function TeamManager({ users, me, isAdmin }: { users: U[]; me: string; is
               <td className="td">
                 {isAdmin && u.id !== me ? (
                   <select className="input w-auto py-0.5" value={u.role} onChange={(e) => patch(u.id, { role: e.target.value })}>{ROLES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-                ) : ROLES.find(([k]) => k === u.role)?.[1]}
+                ) : <span className="accent-chip" style={accent(ROLE_COLOR[u.role])}>{ROLES.find(([k]) => k === u.role)?.[1]}</span>}
               </td>
               <td className="td">{u.active ? "Active" : "Deactivated"}</td>
               {isAdmin && (
