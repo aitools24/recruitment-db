@@ -16,7 +16,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setBusy(true);
     try {
       await api(`/api/auth/${mode}`, { method: "POST", json: Object.fromEntries(new FormData(e.currentTarget)) });
-      router.push("/candidates");
+      router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -28,7 +28,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <div className="neu mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl font-bold text-brand-300">T</div>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#3987e5] via-[#9085e9] to-[#d55181] text-2xl font-bold text-white shadow-[6px_6px_14px_#141922,-5px_-5px_12px_#2a3346]">T</div>
           <div className="text-2xl font-semibold tracking-tight text-slate-100">TalentBase</div>
           <p className="mt-1 text-sm text-slate-400">{mode === "login" ? "Sign in to your candidate database" : "Create a workspace for your recruitment team"}</p>
         </div>

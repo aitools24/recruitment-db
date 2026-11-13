@@ -14,6 +14,16 @@
   --color-brand-600: #2f5fe0;
   --color-brand-700: #2449b8;
 
+  /* Categorical accent palette (validated for colour-blind separation and >=3:1 on the surface; fixed order, never cycled) */
+  --color-series-1: #3987e5; /* blue */
+  --color-series-2: #d95926; /* orange */
+  --color-series-3: #199e70; /* aqua */
+  --color-series-4: #c98500; /* yellow */
+  --color-series-5: #d55181; /* magenta */
+  --color-series-6: #0ca30c; /* green */
+  --color-series-7: #9085e9; /* violet */
+  --color-series-8: #e66767; /* red */
+
   --shadow-neu: 7px 7px 16px #141922, -6px -6px 14px #2a3346;
   --shadow-neu-sm: 4px 4px 9px #151a23, -3px -3px 8px #29324400;
   --shadow-neu-in: inset 4px 4px 9px #151a23, inset -4px -4px 9px #29324a;
@@ -103,3 +113,16 @@ pre code { box-shadow: none; }
 
 /* Thin dark scrollbars */
 * { scrollbar-color: #384257 transparent; scrollbar-width: thin; }
+
+/* Soft tinted badge used for icons and accent chips: colour comes from --accent */
+@utility accent-badge {
+  background: color-mix(in oklab, var(--accent) 16%, var(--color-surface));
+  color: color-mix(in oklab, var(--accent) 55%, white);
+  box-shadow: 3px 3px 7px var(--neu-dark), -2px -2px 6px var(--neu-light), inset 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+@utility accent-chip {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  background: color-mix(in oklab, var(--accent) 14%, var(--color-surface));
+  color: color-mix(in oklab, var(--accent) 50%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent);
+}

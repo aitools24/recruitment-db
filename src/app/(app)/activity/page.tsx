@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requirePage } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { accent, actionColor } from "@/lib/colors";
 
 const ACTIONS = ["EXPORT", "IMPORT", "VIEW", "RESUME_DOWNLOAD", "CREATE", "UPDATE", "DELETE", "MERGE", "NOTE", "RESUME_UPLOAD", "LOGIN", "USER_CREATE", "USER_UPDATE", "SETTINGS"];
 const PAGE = 50;
@@ -35,7 +36,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
               <tr key={l.id}>
                 <td className="td whitespace-nowrap">{l.createdAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
                 <td className="td">{l.user?.name ?? "—"}</td>
-                <td className="td"><span className={`chip ${l.action === "EXPORT" || l.action === "DELETE" ? "text-amber-300" : ""}`}>{l.action.replace("_", " ").toLowerCase()}</span></td>
+                <td className="td"><span className="accent-chip" style={accent(actionColor(l.action))}>{l.action.replace("_", " ").toLowerCase()}</span></td>
                 <td className="td">{l.candidate && <Link className="text-brand-300 hover:underline" href={`/candidates/${l.candidate.id}`}>{l.candidate.fullName}</Link>}</td>
                 <td className="td text-slate-200">{l.message}</td>
               </tr>

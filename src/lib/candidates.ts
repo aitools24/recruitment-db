@@ -174,7 +174,7 @@ export type SearchParams = {
   tags?: string[];
   expMin?: number; expMax?: number;
   ctcMin?: number; ctcMax?: number;
-  noticeMax?: number;
+  noticeMin?: number; noticeMax?: number;
   location?: string;
   company?: string;
   title?: string;
@@ -204,7 +204,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchParams {
     tags: list("tags").map((s) => s.toLowerCase()),
     expMin: num("expMin"), expMax: num("expMax"),
     ctcMin: num("ctcMin"), ctcMax: num("ctcMax"),
-    noticeMax: num("noticeMax"),
+    noticeMin: num("noticeMin"), noticeMax: num("noticeMax"),
     location: str("location"), company: str("company"), title: str("title"), degree: str("degree"),
     source: list("source"), status: list("status"),
     ownerId: str("ownerId"),
@@ -237,6 +237,7 @@ function whereSql(tenantId: string, p: SearchParams) {
   if (p.expMax !== undefined) w.push(Prisma.sql`c."totalExperience" <= ${p.expMax}`);
   if (p.ctcMin !== undefined) w.push(Prisma.sql`c."currentCtc" >= ${p.ctcMin}`);
   if (p.ctcMax !== undefined) w.push(Prisma.sql`c."currentCtc" <= ${p.ctcMax}`);
+  if (p.noticeMin !== undefined) w.push(Prisma.sql`c."noticePeriodDays" >= ${p.noticeMin}`);
   if (p.noticeMax !== undefined) w.push(Prisma.sql`c."noticePeriodDays" <= ${p.noticeMax}`);
   if (p.location) w.push(Prisma.sql`c."location" ILIKE ${like(p.location)}`);
   if (p.company) w.push(Prisma.sql`c."currentCompany" ILIKE ${like(p.company)}`);
