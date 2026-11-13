@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen md:flex">
       <Nav links={links} company={tenant.name} userName={s.name} roleLabel={ROLE_LABELS[s.role]} />
-      <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
+      <main className="min-w-0 flex-1 p-4 md:p-8">{children}</main>
     </div>
   );
 }

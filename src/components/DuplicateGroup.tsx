@@ -24,23 +24,23 @@ export default function DuplicateGroup({ kind, matchValue, candidates, canMerge 
     }
   }
   return (
-    <section className="card p-4">
-      <div className="mb-2 text-sm text-gray-600">Same {kind}: <span className="font-medium text-gray-900">{matchValue}</span></div>
+    <section className="card p-5">
+      <div className="mb-2 text-sm text-slate-300">Same {kind}: <span className="font-medium text-slate-100">{matchValue}</span></div>
       <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
         {candidates.map((c) => (
-          <label key={c.id} className={`block cursor-pointer rounded-md border p-3 text-sm ${primary === c.id ? "border-brand-500 bg-brand-50" : "border-gray-200"}`}>
+          <label key={c.id} className={`block cursor-pointer rounded-xl p-3.5 text-sm transition ${primary === c.id ? "neu-in-sm ring-2 ring-brand-400/60" : "neu-sm"}`}>
             {canMerge && <input type="radio" className="mr-2" checked={primary === c.id} onChange={() => setPrimary(c.id)} />}
-            <Link href={`/candidates/${c.id}`} target="_blank" className="font-medium text-brand-700 hover:underline">{c.fullName}</Link>
-            <div className="text-gray-600">{c.role}</div>
-            <div className="text-gray-500">{[c.email, c.phone].filter(Boolean).join(" · ")}</div>
-            <div className="text-gray-500">{c.details}</div>
-            <div className="mt-1 text-xs text-gray-400">Added {c.added}{c.owner && ` by ${c.owner}`} · {c.resumes} resume(s) · {c.notes} note(s)</div>
+            <Link href={`/candidates/${c.id}`} target="_blank" className="font-medium text-brand-300 hover:underline">{c.fullName}</Link>
+            <div className="text-slate-300">{c.role}</div>
+            <div className="text-slate-400">{[c.email, c.phone].filter(Boolean).join(" · ")}</div>
+            <div className="text-slate-400">{c.details}</div>
+            <div className="mt-1 text-xs text-slate-400">Added {c.added}{c.owner && ` by ${c.owner}`} · {c.resumes} resume(s) · {c.notes} note(s)</div>
           </label>
         ))}
       </div>
       {canMerge ? (
         <button className="btn-primary mt-3" disabled={busy} onClick={merge}>{busy ? "Merging…" : "Keep selected and merge the others into it"}</button>
-      ) : <p className="mt-2 text-xs text-gray-500">Ask a Manager or Admin to merge these.</p>}
+      ) : <p className="mt-2 text-xs text-slate-400">Ask a Manager or Admin to merge these.</p>}
     </section>
   );
 }

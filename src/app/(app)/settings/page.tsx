@@ -12,13 +12,13 @@ export default async function SettingsPage() {
   const isAdmin = s.role === "ADMIN";
   return (
     <div className="max-w-4xl space-y-6">
-      <h1 className="text-xl font-semibold">Team &amp; settings</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Team &amp; settings</h1>
       <MyAccount id={s.userId} name={s.name} />
       <section>
         <h2 className="mb-2 text-sm font-semibold">Team</h2>
         <TeamManager users={users} me={s.userId} isAdmin={isAdmin} />
-        <div className="card mt-3 p-4 text-xs text-gray-600">
-          <div className="mb-1 font-semibold text-gray-800">What each role can do</div>
+        <div className="card mt-3 p-4 text-xs text-slate-300">
+          <div className="mb-1 font-semibold text-slate-100">What each role can do</div>
           <ul className="list-disc space-y-0.5 pl-5">
             <li><b>{ROLE_LABELS.ADMIN}</b>: everything, including managing users and workspace settings.</li>
             <li><b>{ROLE_LABELS.MANAGER}</b>: add, edit, import and delete candidates, merge duplicates, see the activity log.</li>

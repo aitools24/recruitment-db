@@ -15,7 +15,7 @@ export default async function EditCandidate({ params }: { params: Promise<{ id: 
   void _a; void _b;
   return (
     <div className="max-w-5xl">
-      <h1 className="mb-4 text-xl font-semibold">Edit {c.fullName}</h1>
+      <h1 className="mb-4 text-2xl font-semibold tracking-tight text-slate-100">Edit {c.fullName}</h1>
       <CandidateForm initial={initial} {...await formOptions(s.tenantId)} ownerDefault={s.userId} />
     </div>
   );

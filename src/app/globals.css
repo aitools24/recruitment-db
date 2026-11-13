@@ -1,30 +1,104 @@
 @import "tailwindcss";
 
+/*
+  Dark neumorphism theme — slate surfaces with soft extruded / pressed shadows and blue accents.
+  Every surface shares the same base colour; depth comes only from paired light + dark shadows.
+*/
 @theme {
-  --color-brand-50: #eef4ff;
-  --color-brand-100: #dbe7ff;
-  --color-brand-500: #3b6cf6;
-  --color-brand-600: #2b56d9;
-  --color-brand-700: #2344ad;
+  --color-surface: #1f2633;          /* page + surface colour */
+  --color-surface-deep: #1a202b;     /* wells, table headers */
+  --color-brand-200: #bfd3ff;
+  --color-brand-300: #93b4ff;
+  --color-brand-400: #6b95ff;
+  --color-brand-500: #3f75f5;
+  --color-brand-600: #2f5fe0;
+  --color-brand-700: #2449b8;
+
+  --shadow-neu: 7px 7px 16px #141922, -6px -6px 14px #2a3346;
+  --shadow-neu-sm: 4px 4px 9px #151a23, -3px -3px 8px #29324400;
+  --shadow-neu-in: inset 4px 4px 9px #151a23, inset -4px -4px 9px #29324a;
+  --shadow-neu-in-sm: inset 2px 2px 5px #151a23, inset -2px -2px 5px #2a3347;
+  --shadow-glow: 0 6px 18px -4px rgb(63 117 245 / 0.55);
+}
+
+:root {
+  color-scheme: dark;
+  --neu-light: #2a3346;
+  --neu-dark: #141922;
+}
+
+html, body {
+  background: var(--color-surface);
 }
 
 body {
-  background: #f6f7f9;
-  color: #111827;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #e2e8f0;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@utility btn { @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap; }
-@utility btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700; }
-@utility btn-secondary { @apply btn border border-gray-300 bg-white text-gray-800 hover:bg-gray-50; }
-@utility btn-danger { @apply btn border border-red-200 bg-white text-red-700 hover:bg-red-50; }
-@utility btn-ghost { @apply btn text-gray-600 hover:bg-gray-100; }
-@utility input { @apply w-full min-w-0 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100; }
-@utility label { @apply mb-1 block text-xs font-medium text-gray-600; }
-@utility card { @apply rounded-lg border border-gray-200 bg-white; }
-@utility chip { @apply inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700; }
-@utility chip-blue { @apply chip bg-brand-50 text-brand-700; }
-@utility th { @apply px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500; }
-@utility td { @apply px-3 py-2 align-top text-sm; }
+::selection { background: rgb(63 117 245 / 0.45); color: #fff; }
 
-mark { background: #fff3a3; padding: 0 1px; border-radius: 2px; }
+/* Surfaces */
+@utility neu { background: var(--color-surface); box-shadow: 7px 7px 16px var(--neu-dark), -6px -6px 14px var(--neu-light); }
+@utility neu-sm { background: var(--color-surface); box-shadow: 4px 4px 9px var(--neu-dark), -3px -3px 8px var(--neu-light); }
+@utility neu-in { background: var(--color-surface); box-shadow: inset 4px 4px 9px var(--neu-dark), inset -4px -4px 9px var(--neu-light); }
+@utility neu-in-sm { background: var(--color-surface); box-shadow: inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light); }
+
+@utility card { @apply neu rounded-2xl; }
+
+/* Buttons */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium whitespace-nowrap transition duration-150 select-none disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400;
+}
+@utility btn-primary {
+  @apply btn text-white;
+  background: linear-gradient(145deg, #4a80ff, #2f5fe0);
+  box-shadow: 5px 5px 12px var(--neu-dark), -4px -4px 10px var(--neu-light), 0 6px 18px -6px rgb(63 117 245 / 0.6);
+  &:hover:not(:disabled) { background: linear-gradient(145deg, #5a8cff, #3567ea); }
+  &:active:not(:disabled) { box-shadow: inset 3px 3px 7px #1c3c94, inset -3px -3px 7px #5b8cff; }
+}
+@utility btn-secondary {
+  @apply btn neu-sm text-slate-200 hover:text-white;
+  &:active:not(:disabled) { box-shadow: inset 3px 3px 7px var(--neu-dark), inset -3px -3px 7px var(--neu-light); }
+}
+@utility btn-danger {
+  @apply btn neu-sm text-red-300 hover:text-red-200;
+  &:active:not(:disabled) { box-shadow: inset 3px 3px 7px var(--neu-dark), inset -3px -3px 7px var(--neu-light); }
+}
+@utility btn-ghost {
+  @apply btn text-slate-300 hover:text-white;
+  &:hover:not(:disabled) { box-shadow: inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light); }
+}
+
+/* Form fields: pressed into the surface */
+@utility input {
+  @apply neu-in-sm w-full min-w-0 rounded-xl border-0 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition;
+  &:focus { box-shadow: inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light), 0 0 0 2px rgb(107 149 255 / 0.65); }
+  &:disabled { @apply opacity-60; }
+}
+@utility label { @apply mb-1.5 block text-xs font-medium tracking-wide text-slate-400; }
+
+/* Chips */
+@utility chip { @apply neu-in-sm inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs text-slate-300; }
+@utility chip-blue { @apply chip text-brand-300; background: rgb(63 117 245 / 0.12); }
+
+/* Tables */
+@utility th { @apply bg-surface-deep px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400; }
+@utility td { @apply px-3 py-3 align-top text-sm text-slate-200; }
+
+select.input option { background: #1f2633; color: #e2e8f0; }
+input[type="checkbox"], input[type="radio"] { accent-color: #4a80ff; }
+
+mark { background: rgb(250 204 21 / 0.22); color: #fde68a; padding: 0 2px; border-radius: 3px; }
+
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸ "; }
+details[open] > summary::before { content: "▾ "; }
+
+code { @apply neu-in-sm rounded-md px-1.5 py-0.5 text-[12px] text-brand-200; }
+pre code { box-shadow: none; }
+
+/* Thin dark scrollbars */
+* { scrollbar-color: #384257 transparent; scrollbar-width: thin; }

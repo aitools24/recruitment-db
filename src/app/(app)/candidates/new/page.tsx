@@ -6,7 +6,7 @@ export default async function NewCandidate() {
   const s = await requirePage("editCandidates");
   return (
     <div className="max-w-5xl">
-      <h1 className="mb-4 text-xl font-semibold">Add candidate</h1>
+      <h1 className="mb-4 text-2xl font-semibold tracking-tight text-slate-100">Add candidate</h1>
       <CandidateForm {...await formOptions(s.tenantId)} ownerDefault={s.userId} />
     </div>
   );

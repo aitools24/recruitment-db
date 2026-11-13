@@ -10,10 +10,10 @@ export default async function DuplicatesPage() {
   return (
     <div className="max-w-6xl space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Duplicates</h1>
-        <p className="text-sm text-gray-600">Profiles that share an email address or phone number. Merging keeps the profile you choose, fills its blank fields from the others, combines skills, tags, resumes, notes and history, and then removes the extra copies.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Duplicates</h1>
+        <p className="text-sm text-slate-300">Profiles that share an email address or phone number. Merging keeps the profile you choose, fills its blank fields from the others, combines skills, tags, resumes, notes and history, and then removes the extra copies.</p>
       </div>
-      {!groups.length && <div className="card p-8 text-center text-gray-500">No duplicates found. 🎉</div>}
+      {!groups.length && <div className="card p-8 text-center text-slate-400">No duplicates found. 🎉</div>}
       {groups.map((g) => (
         <DuplicateGroup
           key={g.kind + g.key}

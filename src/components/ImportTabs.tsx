@@ -11,9 +11,9 @@ export default function ImportTabs({ fields, sources }: { fields: Field[]; sourc
   const [tab, setTab] = useState<"sheet" | "resumes">("sheet");
   return (
     <div>
-      <div className="mb-3 flex gap-1 border-b border-gray-200">
+      <div className="neu-in mb-5 inline-flex flex-wrap gap-1 rounded-2xl p-1.5">
         {([["sheet", "Spreadsheet (CSV / Excel)"], ["resumes", "Resumes (PDF / DOCX / ZIP)"]] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k)} className={`-mb-px border-b-2 px-3 py-2 text-sm ${tab === k ? "border-brand-600 font-medium text-brand-700" : "border-transparent text-gray-600 hover:text-gray-900"}`}>{l}</button>
+          <button key={k} onClick={() => setTab(k)} className={`rounded-xl px-4 py-2 text-sm transition ${tab === k ? "neu-sm font-medium text-brand-300" : "text-slate-400 hover:text-slate-100"}`}>{l}</button>
         ))}
       </div>
       {tab === "sheet" ? <SpreadsheetImport fields={fields} sources={sources} /> : <ResumeImport sources={sources} />}
@@ -103,7 +103,7 @@ function SpreadsheetImport({ fields, sources }: { fields: Field[]; sources: stri
           <Stat label="Skipped duplicates" value={n("skipped")} />
           <Stat label="Failed" value={n("failed")} tone={n("failed") ? "red" : undefined} />
         </div>
-        {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="neu-in-sm rounded-xl px-3 py-2 text-sm text-red-300">{error}</p>}
         <div className="flex flex-wrap gap-2">
           {(n("failed") > 0 || n("skipped") > 0) && <button className="btn-secondary" onClick={downloadReport}>Download error report</button>}
           <Link className="btn-primary" href="/candidates?sort=newest">View candidates</Link>
@@ -117,8 +117,8 @@ function SpreadsheetImport({ fields, sources }: { fields: Field[]; sources: stri
     return (
       <div className="space-y-3">
         <DropZone accept=".csv,.xlsx" busy={busy} label="Drop a CSV or Excel (.xlsx) file here, or click to choose" onFiles={(f) => choose(f[0])} />
-        <p className="text-xs text-gray-500">Works with Naukri / LinkedIn exports and your own trackers. You&apos;ll match columns and preview before anything is saved. Up to 20,000 rows per file.</p>
-        {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        <p className="text-xs text-slate-400">Works with Naukri / LinkedIn exports and your own trackers. You&apos;ll match columns and preview before anything is saved. Up to 20,000 rows per file.</p>
+        {error && <p className="neu-in-sm rounded-xl px-3 py-2 text-sm text-red-300">{error}</p>}
       </div>
     );
   }
@@ -127,16 +127,16 @@ function SpreadsheetImport({ fields, sources }: { fields: Field[]; sources: stri
   const shownFields = fields.filter((f) => mappedFields.includes(f.key));
   return (
     <div className="space-y-4">
-      <div className="card p-4">
+      <div className="card p-5">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-semibold">1. Match columns <span className="font-normal text-gray-500">({parsed.fileName}, {parsed.rows.length.toLocaleString("en-IN")} rows)</span></h2>
+          <h2 className="font-semibold">1. Match columns <span className="font-normal text-slate-400">({parsed.fileName}, {parsed.rows.length.toLocaleString("en-IN")} rows)</span></h2>
           <button className="btn-ghost text-xs" onClick={() => setParsed(null)}>Choose a different file</button>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {parsed.headers.map((h, i) => (
-            <div key={i} className="rounded border border-gray-200 p-2">
+            <div key={i} className="neu-sm rounded-xl p-3">
               <div className="truncate text-sm font-medium" title={h}>{h}</div>
-              <div className="mb-1 truncate text-xs text-gray-400" title={parsed.rows[0]?.[i]}>e.g. {parsed.rows.find((r) => r[i])?.[i] || "—"}</div>
+              <div className="mb-1 truncate text-xs text-slate-400" title={parsed.rows[0]?.[i]}>e.g. {parsed.rows.find((r) => r[i])?.[i] || "—"}</div>
               <select className="input py-1" value={mapping[i] ?? ""} onChange={(e) => setMapping({ ...mapping, [i]: e.target.value })}>
                 <option value="">Don&apos;t import</option>
                 {fields.map((f) => <option key={f.key} value={f.key} disabled={mappedFields.includes(f.key) && mapping[i] !== f.key}>{f.label}</option>)}
@@ -146,7 +146,7 @@ function SpreadsheetImport({ fields, sources }: { fields: Field[]; sources: stri
         </div>
       </div>
 
-      <div className="card p-4">
+      <div className="card p-5">
         <h2 className="mb-3 font-semibold">2. Options</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <div><label className="label">If a candidate already exists (same email or phone)</label>
@@ -161,20 +161,20 @@ function SpreadsheetImport({ fields, sources }: { fields: Field[]; sources: stri
         </div>
       </div>
 
-      <div className="card p-4">
-        <h2 className="mb-3 font-semibold">3. Preview <span className="font-normal text-gray-500">(first {preview.length} rows; values like &quot;12,00,000&quot; or &quot;2 months&quot; are converted on import)</span></h2>
+      <div className="card p-5">
+        <h2 className="mb-3 font-semibold">3. Preview <span className="font-normal text-slate-400">(first {preview.length} rows; values like &quot;12,00,000&quot; or &quot;2 months&quot; are converted on import)</span></h2>
         {shownFields.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50"><tr>{shownFields.map((f) => <th key={f.key} className="th whitespace-nowrap">{f.label}</th>)}</tr></thead>
-              <tbody className="divide-y divide-gray-100">
+              <thead className="bg-white/[0.03]"><tr>{shownFields.map((f) => <th key={f.key} className="th whitespace-nowrap">{f.label}</th>)}</tr></thead>
+              <tbody className="divide-y divide-white/[0.05]">
                 {preview.map((r, i) => { const rec = toRecord(r); return <tr key={i}>{shownFields.map((f) => <td key={f.key} className="px-3 py-1.5 whitespace-nowrap">{rec[f.key]}</td>)}</tr>; })}
               </tbody>
             </table>
           </div>
-        ) : <p className="text-sm text-gray-500">Map at least one column to see a preview.</p>}
-        {!canImport && <p className="mt-2 text-sm text-amber-700">Map a Name, Email or Phone column to continue.</p>}
-        {error && <p className="mt-2 rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        ) : <p className="text-sm text-slate-400">Map at least one column to see a preview.</p>}
+        {!canImport && <p className="mt-2 text-sm text-amber-300">Map a Name, Email or Phone column to continue.</p>}
+        {error && <p className="mt-2 neu-in-sm rounded-xl px-3 py-2 text-sm text-red-300">{error}</p>}
         <div className="mt-3 flex items-center gap-3">
           <button className="btn-primary" disabled={!canImport || busy} onClick={runImport}>{busy ? `Importing… ${progress}/${parsed.rows.length}` : `Import ${parsed.rows.length.toLocaleString("en-IN")} rows`}</button>
         </div>
@@ -231,21 +231,21 @@ function ResumeImport({ sources }: { sources: string[] }) {
         <div><label className="label">Source</label><select className="input w-48" value={source} onChange={(e) => setSource(e.target.value)}>{sources.map((s) => <option key={s}>{s}</option>)}</select></div>
       </div>
       <DropZone multiple accept=".pdf,.docx,.txt,.zip" busy={busy} label="Drop resumes here (PDF, DOCX, TXT, or a ZIP of many), or click to choose" onFiles={upload} />
-      <p className="text-xs text-gray-500">Each resume is read automatically: name, email, phone, LinkedIn, location, experience, notice period and skills are filled in. If the email or phone already exists, the resume is added to that profile as a new version instead of creating a duplicate.</p>
-      {busy && <p className="text-sm text-gray-600">Processing {progress.done} of {progress.total} upload(s)…</p>}
+      <p className="text-xs text-slate-400">Each resume is read automatically: name, email, phone, LinkedIn, location, experience, notice period and skills are filled in. If the email or phone already exists, the resume is added to that profile as a new version instead of creating a duplicate.</p>
+      {busy && <p className="text-sm text-slate-300">Processing {progress.done} of {progress.total} upload(s)…</p>}
       {results.length > 0 && (
         <div className="card overflow-x-auto">
-          <div className="flex flex-wrap gap-3 border-b border-gray-100 p-3 text-sm">
+          <div className="flex flex-wrap gap-3 border-b border-white/[0.06] p-3 text-sm">
             <Stat label="New candidates" value={n("created")} tone="green" /><Stat label="Added to existing" value={n("attached")} /><Stat label="Failed" value={n("failed")} tone={n("failed") ? "red" : undefined} />
           </div>
           <table className="w-full min-w-[560px]">
-            <thead className="bg-gray-50"><tr><th className="th">File</th><th className="th">Result</th><th className="th">Candidate</th></tr></thead>
-            <tbody className="divide-y divide-gray-100">
+            <thead className="bg-white/[0.03]"><tr><th className="th">File</th><th className="th">Result</th><th className="th">Candidate</th></tr></thead>
+            <tbody className="divide-y divide-white/[0.05]">
               {results.map((r, i) => (
                 <tr key={i}>
                   <td className="td">{r.fileName}</td>
-                  <td className={`td ${r.status === "failed" ? "text-red-700" : ""}`}>{r.status === "created" ? "New profile" : r.status === "attached" ? "Added to existing profile" : `Failed: ${r.error}`}</td>
-                  <td className="td">{r.candidateId && <Link className="text-brand-700 hover:underline" href={`/candidates/${r.candidateId}`}>{r.candidateName}</Link>}</td>
+                  <td className={`td ${r.status === "failed" ? "text-red-300" : ""}`}>{r.status === "created" ? "New profile" : r.status === "attached" ? "Added to existing profile" : `Failed: ${r.error}`}</td>
+                  <td className="td">{r.candidateId && <Link className="text-brand-300 hover:underline" href={`/candidates/${r.candidateId}`}>{r.candidateName}</Link>}</td>
                 </tr>
               ))}
             </tbody>
@@ -265,9 +265,10 @@ function DropZone({ accept, multiple, busy, label, onFiles }: { accept: string; 
       onDragOver={(e) => { e.preventDefault(); setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); if (!busy && e.dataTransfer.files.length) onFiles([...e.dataTransfer.files]); }}
-      className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-10 text-center text-sm ${over ? "border-brand-500 bg-brand-50" : "border-gray-300 bg-white hover:bg-gray-50"} ${busy ? "cursor-wait opacity-60" : ""}`}
+      className={`neu-in flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-4 py-12 text-center text-sm transition ${over ? "border-brand-400/70" : "border-white/[0.07] hover:border-brand-400/40"} ${busy ? "cursor-wait opacity-60" : ""}`}
     >
-      <div className="text-gray-700">{busy ? "Working…" : label}</div>
+      <div className="neu-sm flex h-12 w-12 items-center justify-center rounded-2xl text-xl text-brand-300" aria-hidden>↑</div>
+      <div className="text-slate-200">{busy ? "Working…" : label}</div>
       <input ref={input} type="file" hidden accept={accept} multiple={multiple} onChange={(e) => { if (e.target.files?.length) onFiles([...e.target.files]); e.target.value = ""; }} />
     </div>
   );
@@ -275,7 +276,7 @@ function DropZone({ accept, multiple, busy, label, onFiles }: { accept: string; 
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "green" | "red" }) {
   return (
-    <div className={`rounded-md px-3 py-1.5 ${tone === "green" ? "bg-green-50 text-green-800" : tone === "red" ? "bg-red-50 text-red-800" : "bg-gray-100 text-gray-800"}`}>
+    <div className={`neu-in-sm rounded-xl px-3.5 py-2 ${tone === "green" ? "text-emerald-300" : tone === "red" ? "text-red-300" : "text-slate-200"}`}>
       <span className="font-semibold">{value}</span> {label}
     </div>
   );
