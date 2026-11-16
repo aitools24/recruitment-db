@@ -1,7 +1,7 @@
 import { requirePage } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ROLE_LABELS } from "@/lib/permissions";
-import { ExportSettings, MyAccount, TeamManager } from "@/components/SettingsWidgets";
+import { ExportSettings, MyAccount, PlacementTerms, TeamManager } from "@/components/SettingsWidgets";
 
 export default async function SettingsPage() {
   const s = await requirePage();
@@ -28,6 +28,7 @@ export default async function SettingsPage() {
           </ul>
         </div>
       </section>
+      <PlacementTerms isAdmin={isAdmin} billingAfterDays={tenant.billingAfterDays} guaranteeDays={tenant.guaranteeDays} />
       <ExportSettings isAdmin={isAdmin} roles={tenant.exportRoles} maxRows={tenant.exportMaxRows} />
     </div>
   );

@@ -9,7 +9,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const links = [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard", color: "#3987e5", show: true },
     { href: "/candidates", label: "Candidates", icon: "users", color: "#199e70", show: true },
-    { href: "/candidates/new", label: "Add candidate", icon: "userPlus", color: "#0ca30c", show: can(s.role, "editCandidates") },
+    { href: "/pipeline", label: "Pipeline", icon: "pipeline", color: "#0ca30c", show: true },
+    { href: "/clients", label: "Clients", icon: "building", color: "#14b8a6", show: true },
+    { href: "/candidates/new", label: "Add candidate", icon: "userPlus", color: "#e66767", show: can(s.role, "editCandidates") },
     { href: "/import", label: "Import", icon: "upload", color: "#d95926", show: can(s.role, "importData") },
     { href: "/duplicates", label: "Duplicates", icon: "copy", color: "#c98500", show: true },
     { href: "/activity", label: "Activity log", icon: "activity", color: "#d55181", show: can(s.role, "viewAuditLog") },

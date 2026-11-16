@@ -54,6 +54,29 @@ export default async function Dashboard() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
+            <Panel title="Placement pipeline" sub={`${fmt(d.pipeline.total)} candidate${d.pipeline.total === 1 ? "" : "s"} in progress`} className="lg:col-span-2" color="#0ca30c">
+              <BarList rows={d.pipeline.stages} total={Math.max(d.pipeline.total, 1)} empty="No one in the pipeline yet" />
+              <Link href="/pipeline" className="mt-4 inline-block text-sm text-brand-300 hover:underline">Open pipeline board →</Link>
+            </Panel>
+            <Panel title="Billing & guarantee" sub={`Bill after ${d.pipeline.terms.billingAfterDays} days · ${d.pipeline.terms.guaranteeDays}-day guarantee`} color="#e66767">
+              <ul className="space-y-3">
+                {([
+                  ["Ready to bill now", d.pipeline.readyToBill, "#e66767"],
+                  ["Billing opens within 7 days", d.pipeline.billSoon, "#c98500"],
+                  ["Billed, still in guarantee", d.pipeline.inGuarantee, "#3987e5"],
+                ] as const).map(([label, v, c]) => (
+                  <li key={label}>
+                    <Link href="/pipeline" className="neu-in-sm flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm hover:text-white">
+                      <span className="flex items-center gap-2 text-slate-300"><span className="h-2.5 w-2.5 rounded-full" style={{ background: c }} aria-hidden />{label}</span>
+                      <span className="text-xl font-semibold tabular-nums" style={{ color: v ? c : undefined }}>{v}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
             <Panel title="Candidates added per week" sub="Last 12 weeks" className="lg:col-span-2" color={SERIES[0]}>
               <WeeklyColumns data={d.weekly} />
             </Panel>

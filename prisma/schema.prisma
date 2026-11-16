@@ -23,6 +23,9 @@ model Tenant {
   // Export controls (Settings > Export)
   exportRoles    Role[]   @default([ADMIN, MANAGER])
   exportMaxRows  Int      @default(1000)
+  // Placement terms (Settings > Placement terms): timers start from the candidate's joining date.
+  billingAfterDays Int    @default(30)
+  guaranteeDays  Int      @default(90)
   createdAt      DateTime @default(now())
 
   users      User[]
@@ -31,6 +34,8 @@ model Tenant {
   notes      Note[]
   auditLogs  AuditLog[]
   imports    ImportJob[]
+  stageEvents StageEvent[]
+  clients    Client[]
 }
 
 model User {
@@ -46,6 +51,7 @@ model User {
 
   ownedCandidates Candidate[] @relation("owner")
   notes           Note[]
+  stageEvents     StageEvent[]
   auditLogs       AuditLog[]
 
   @@index([tenantId])
@@ -90,6 +96,19 @@ model Candidate {
   // searchVector tsvector is a generated column added in the init migration.
   searchVector   Unsupported("tsvector")?
 
+  // Placement pipeline. stage is null until the candidate is put forward for a job.
+  clientId       String?
+  client         Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  stage          String?   // INTERNAL, CLIENT, INTERVIEW, OFFER, ONBOARDING, BILLING (see src/lib/pipeline.ts)
+  stageUpdatedAt DateTime?
+  clientName     String?   // copy of client.name, kept for history and search
+  jobTitle       String?   // role the candidate is submitted for
+  interviewAt    DateTime?
+  offerCtc       Float?    // LPA
+  joiningDate    DateTime? @db.Date
+  billedOn       DateTime? @db.Date
+  billingAmount  Float?    // INR
+
   ownerId        String?
   owner          User?     @relation("owner", fields: [ownerId], references: [id], onDelete: SetNull)
   createdById    String?
@@ -99,8 +118,11 @@ model Candidate {
   resumes   Resume[]
   notes     Note[]
   auditLogs AuditLog[]
+  stageEvents StageEvent[]
 
   @@index([tenantId, emailLower])
+  @@index([tenantId, stage])
+  @@index([tenantId, clientId])
   @@index([tenantId, phoneNormalized])
   @@index([tenantId, createdAt])
   @@index([tenantId, industry])
@@ -172,4 +194,51 @@ model ImportJob {
   createdAt  DateTime @default(now())
 
   @@index([tenantId, createdAt])
+}
+
+// One row per pipeline move, shown as the stage history on the profile.
+model StageEvent {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  fromStage   String?
+  toStage     String?
+  note        String?
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId, candidateId])
+  @@index([tenantId, createdAt])
+}
+
+// Companies the agency recruits for. Pipeline candidates are linked to one client.
+model Client {
+  id               String    @id @default(cuid())
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name             String
+  industry         String?
+  location         String?
+  website          String?
+  gstin            String?
+  contactName      String?
+  contactTitle     String?
+  contactEmail     String?
+  contactPhone     String?
+  feePercent       Float?    // placement fee, % of annual CTC
+  billingAfterDays Int?      // overrides the workspace default when set
+  guaranteeDays    Int?      // overrides the workspace default when set
+  agreementStart   DateTime? @db.Date
+  agreementEnd     DateTime? @db.Date
+  status           String    @default("Active") // Active, On hold, Inactive
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  candidates Candidate[]
+
+  @@unique([tenantId, name])
 }

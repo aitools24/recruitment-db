@@ -104,6 +104,33 @@ export function ExportSettings({ isAdmin, roles, maxRows }: { isAdmin: boolean; 
   );
 }
 
+export function PlacementTerms({ isAdmin, billingAfterDays, guaranteeDays }: { isAdmin: boolean; billingAfterDays: number; guaranteeDays: number }) {
+  const router = useRouter();
+  const [bill, setBill] = useState(String(billingAfterDays));
+  const [guar, setGuar] = useState(String(guaranteeDays));
+  const [msg, setMsg] = useState("");
+  async function save() {
+    if (Number(bill) > Number(guar)) return setMsg("Billing days can't be more than the guarantee period");
+    try {
+      await api("/api/settings", { method: "PATCH", json: { billingAfterDays: Number(bill), guaranteeDays: Number(guar) } });
+      setMsg("Saved"); router.refresh();
+    } catch (e) { setMsg((e as Error).message); }
+  }
+  return (
+    <section className="card p-5">
+      <h2 className="mb-1 text-sm font-semibold">Placement terms</h2>
+      <p className="mb-3 text-xs text-slate-300">Both timers start from the candidate&apos;s joining date and show on their profile and the Pipeline page. Changing these updates every placement.</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <div><label className="label">Bill the client after (days)</label><input type="number" min={0} max={365} disabled={!isAdmin} className="input w-40" value={bill} onChange={(e) => { setMsg(""); setBill(e.target.value); }} /></div>
+        <div><label className="label">Guarantee period (days)</label><input type="number" min={1} max={730} disabled={!isAdmin} className="input w-40" value={guar} onChange={(e) => { setMsg(""); setGuar(e.target.value); }} /></div>
+        {isAdmin && <button className="btn-primary" onClick={save}>Save</button>}
+        {msg && <span className={`text-sm ${msg === "Saved" ? "text-green-300" : "text-red-300"}`}>{msg}</span>}
+      </div>
+      {!isAdmin && <p className="mt-2 text-xs text-slate-400">Only Admins can change these.</p>}
+    </section>
+  );
+}
+
 export function MyAccount({ id, name }: { id: string; name: string }) {
   const [msg, setMsg] = useState("");
   async function change(e: React.FormEvent<HTMLFormElement>) {

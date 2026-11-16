@@ -7,6 +7,9 @@ import { can } from "@/lib/permissions";
 import { formatCtc, formatExp, formatNotice } from "@/lib/normalize";
 import { NEUTRAL, SOURCE_COLOR, STATUS_COLOR, accent } from "@/lib/colors";
 import { DeleteCandidate, NotesPanel, ResumeUpload, TagEditor } from "@/components/ProfileWidgets";
+import { PipelineCard } from "@/components/Pipeline";
+import { stageInfo } from "@/lib/pipeline";
+import { termsFor } from "@/lib/clients";
 
 const dt = (d: Date) => d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
@@ -18,10 +21,18 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
       owner: { select: { name: true } },
       resumes: { orderBy: { version: "desc" }, select: { id: true, version: true, fileName: true, size: true, createdAt: true, mimeType: true } },
       notes: { orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } },
+      stageEvents: { orderBy: { createdAt: "desc" }, include: { user: { select: { name: true } } } },
       auditLogs: { where: { action: { not: "VIEW" } }, orderBy: { createdAt: "desc" }, take: 50, include: { user: { select: { name: true } } } },
     },
   });
   if (!c) notFound();
+  const [tenantTerms, clients] = await Promise.all([
+    prisma.tenant.findUniqueOrThrow({ where: { id: s.tenantId }, select: { billingAfterDays: true, guaranteeDays: true } }),
+    prisma.client.findMany({ where: { tenantId: s.tenantId }, orderBy: { name: "asc" }, select: { id: true, name: true, status: true, billingAfterDays: true, guaranteeDays: true } }),
+  ]);
+  const terms = termsFor(clients.find((x) => x.id === c.clientId), tenantTerms);
+  const ymd = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
+  const st = stageInfo(c.stage);
   await audit(s, "VIEW", "Viewed profile", { candidateId: c.id });
   const canEdit = can(s.role, "editCandidates");
   const canDownload = can(s.role, "downloadResumes");
@@ -55,13 +66,24 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-100">{c.fullName}</h1>
           <p className="text-slate-300">{[c.currentTitle, c.currentCompany].filter(Boolean).join(" at ") || "No current role recorded"}</p>
-          <span className="accent-chip mt-2" style={accent(STATUS_COLOR[c.status] ?? NEUTRAL)}>{c.status}</span>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span className="accent-chip" style={accent(STATUS_COLOR[c.status] ?? NEUTRAL)}>{c.status}</span>
+            {st && <span className="accent-chip" style={accent(st.color)}>{st.label}</span>}
+          </div>
         </div>
         <div className="flex gap-2">
           {canEdit && <Link href={`/candidates/${c.id}/edit`} className="btn-secondary">Edit profile</Link>}
           {can(s.role, "deleteCandidates") && <DeleteCandidate id={c.id} name={c.fullName} />}
         </div>
       </div>
+
+      <PipelineCard
+        id={c.id} canEdit={canEdit} stage={c.stage} clientId={c.clientId} clientName={c.clientName}
+        clients={clients.map(({ id, name, status }) => ({ id, name, status }))} canAddClient={can(s.role, "editClients")} jobTitle={c.jobTitle}
+        interviewAt={c.interviewAt?.toISOString() ?? null} offerCtc={c.offerCtc} joiningDate={ymd(c.joiningDate)}
+        billedOn={ymd(c.billedOn)} billingAmount={c.billingAmount} terms={terms}
+        history={c.stageEvents.map((e) => ({ id: e.id, from: e.fromStage, to: e.toStage, note: e.note, user: e.user?.name ?? "Deleted user", at: dt(e.createdAt) }))}
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">

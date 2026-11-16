@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { HttpError, handler, requireApi } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { exportCandidates, parseSearchParams } from "@/lib/candidates";
+import { stageInfo } from "@/lib/pipeline";
 
 const COLUMNS: [string, string][] = [
   ["fullName", "Name"], ["email", "Email"], ["phone", "Phone"], ["altPhone", "Alternate phone"], ["location", "Location"],
@@ -11,6 +12,7 @@ const COLUMNS: [string, string][] = [
   ["totalExperience", "Experience (yrs)"], ["currentCtc", "Current CTC (LPA)"], ["expectedCtc", "Expected CTC (LPA)"],
   ["noticePeriodDays", "Notice (days)"], ["highestDegree", "Degree"], ["college", "College"], ["certifications", "Certifications"],
   ["languages", "Languages"], ["skills", "Skills"], ["tags", "Tags"], ["source", "Source"], ["status", "Status"],
+  ["pipelineStage", "Pipeline stage"], ["clientName", "Client"], ["submittedFor", "Submitted for"], ["joiningDate", "Joining date"], ["billedOn", "Billed on"],
   ["ownerName", "Owner"], ["linkedinUrl", "LinkedIn"], ["createdAt", "Added on"], ["updatedAt", "Updated on"],
 ];
 
@@ -24,7 +26,7 @@ export const GET = handler(async (req: Request) => {
   const params = parseSearchParams(sp);
   const rows = await exportCandidates(s.tenantId, params, tenant.exportMaxRows);
   const table = rows.map((r) => COLUMNS.map(([k]) => {
-    const v = r[k];
+    const v = k === "pipelineStage" ? stageInfo(r[k] as string)?.label : r[k];
     return v instanceof Date ? v.toISOString().slice(0, 10) : v ?? "";
   }));
   const filters = Object.fromEntries([...sp.entries()].filter(([k]) => k !== "format"));

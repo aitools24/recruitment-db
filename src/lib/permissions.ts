@@ -8,6 +8,8 @@ const MATRIX = {
   importData: ["ADMIN", "MANAGER", "RECRUITER"],
   mergeDuplicates: ["ADMIN", "MANAGER"],
   downloadResumes: ["ADMIN", "MANAGER", "RECRUITER"],
+  editClients: ["ADMIN", "MANAGER", "RECRUITER"],
+  deleteClients: ["ADMIN", "MANAGER"],
   viewAuditLog: ["ADMIN", "MANAGER"],
   manageUsers: ["ADMIN"],
   manageSettings: ["ADMIN"],
