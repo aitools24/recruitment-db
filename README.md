@@ -12,9 +12,11 @@ A multi-tenant SaaS candidate database (ATS-lite) for recruitment teams. Each co
 - **Filters**: skills (all of / any of), tags, owner, experience range, CTC range, notice period, location, company, designation, degree, date added, industry, source and status. Filters live in the URL, so a filtered list can be bookmarked or shared with the team.
 - **Duplicates**: warnings when adding a candidate with an existing email/phone, and a Duplicates page to merge copies (blank fields filled, skills/tags combined, resumes, notes and history moved).
 - **Roles**: Admin, Manager, Recruiter and View-only (see Team & settings in the app for exactly what each can do).
+- **Placement pipeline**: every candidate can move through Submitted to internal team → Submitted to client → Interview scheduled → Offer → Onboarding → Billing, with client, position, interview time, offered CTC, joining date and billing details. Each move is kept in a stage history. A Pipeline page shows a board per stage plus alerts for who is ready to bill, billing due soon, guarantees ending soon and upcoming interviews.
+- **Billing and guarantee timers**: from the joining date, the profile shows a live countdown to the billing date (default 30 days) and to the end of the guarantee period (default 90 days). Admins change both under Team & settings → Placement terms. Run `npm run db:demo-pipeline` to add sample pipeline data to the demo workspace.
 - **Export controls**: CSV/Excel export of the current search, limited to the roles and row cap an Admin chooses. Every export, view, download and change is written to the activity log.
 
-Not in v1 (planned for v2): job pipeline, email/WhatsApp messaging, billing, AI semantic search and AI parsing, 2FA/SSO.
+Not yet built: job openings as their own records, email/WhatsApp messaging, invoicing and payments, AI semantic search and AI parsing, 2FA/SSO.
 
 ## Tech stack
 

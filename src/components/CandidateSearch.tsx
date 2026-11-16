@@ -7,6 +7,7 @@ import { api } from "./api";
 import Highlight from "./Highlight";
 import { formatCtc, formatExp, formatNotice } from "@/lib/normalize";
 import type { SearchRow } from "@/lib/candidates";
+import { STAGES, stageInfo } from "@/lib/pipeline";
 import { SERIES, SOURCE_COLOR, STATUS_COLOR, NEUTRAL, accent } from "@/lib/colors";
 
 type Props = {
@@ -21,7 +22,9 @@ type Props = {
 
 type Result = { rows: SearchRow[]; total: number; page: number; pageSize: number };
 
-const MULTI = ["industry", "source", "status"];
+const MULTI = ["industry", "source", "status", "stage"];
+const STAGE_LABEL = Object.fromEntries(STAGES.map((s) => [s.key, s.label]));
+const STAGE_COLOR = Object.fromEntries(STAGES.map((s) => [s.key, s.color]));
 const FIELDS = ["q", "skills", "skillsMode", "tags", "expMin", "expMax", "ctcMin", "ctcMax", "noticeMin", "noticeMax", "location", "company", "title", "degree", "ownerId", "addedFrom", "addedTo", "sort", ...MULTI];
 
 export default function CandidateSearch(p: Props) {
@@ -127,6 +130,7 @@ export default function CandidateSearch(p: Props) {
                   <div className="flex flex-wrap items-center gap-2">
                     <Link href={`/candidates/${c.id}`} className="font-medium text-brand-300 hover:underline">{c.fullName}</Link>
                     {c.status !== "Active" && <span className="accent-chip" style={accent(STATUS_COLOR[c.status] ?? NEUTRAL)}>{c.status}</span>}
+                    {c.stage && <span className="accent-chip" style={accent(stageInfo(c.stage)?.color ?? NEUTRAL)} title={c.clientName ?? undefined}>{stageInfo(c.stage)?.short}{c.clientName ? ` · ${c.clientName}` : ""}</span>}
                   </div>
                   <div className="text-xs text-slate-300">{[c.currentTitle, c.currentCompany].filter(Boolean).join(" at ")}</div>
                   {c.industry && <div className="text-xs text-slate-400">{c.industry}</div>}
@@ -223,6 +227,7 @@ function Filters({ users, industries, sources, statuses, sp, update }: Props & {
         <Checks label="Source" options={sources} value={multi.source} onToggle={(v) => toggle("source", v)} colors={SOURCE_COLOR} />
         <Checks label="Status" options={statuses} value={multi.status} onToggle={(v) => toggle("status", v)} colors={STATUS_COLOR} />
       </div>
+      <Checks label="Pipeline stage" options={STAGES.map((s) => s.key)} labels={STAGE_LABEL} value={multi.stage} onToggle={(v) => toggle("stage", v)} colors={STAGE_COLOR} />
       <div className="flex gap-2">
         <button className="btn-primary">Apply filters</button>
         <button type="button" className="btn-ghost" onClick={clear}>Clear all</button>
@@ -231,7 +236,7 @@ function Filters({ users, industries, sources, statuses, sp, update }: Props & {
   );
 }
 
-function Checks({ label, options, value, onToggle, colors }: { label: string; options: string[]; value: string[]; onToggle: (v: string) => void; colors?: Record<string, string> }) {
+function Checks({ label, options, value, onToggle, colors, labels }: { label: string; options: string[]; value: string[]; onToggle: (v: string) => void; colors?: Record<string, string>; labels?: Record<string, string> }) {
   return (
     <div>
       <div className="label">{label}</div>
@@ -239,7 +244,7 @@ function Checks({ label, options, value, onToggle, colors }: { label: string; op
         {options.map((o) => (
           <button type="button" key={o} onClick={() => onToggle(o)} style={value.includes(o) && colors?.[o] ? { ...accent(colors[o]), color: `color-mix(in oklab, ${colors[o]} 55%, white)`, boxShadow: `inset 2px 2px 5px #151a23, inset -2px -2px 5px #2a3347, 0 0 0 1px ${colors[o]}` } : undefined}
             className={`rounded-full px-3 py-1 text-xs transition ${value.includes(o) ? "neu-in-sm font-medium text-brand-300 ring-1 ring-brand-400/50" : "neu-sm text-slate-300 hover:text-white"}`}>
-            {o}
+            {labels?.[o] ?? o}
           </button>
         ))}
       </div>

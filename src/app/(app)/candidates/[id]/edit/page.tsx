@@ -8,7 +8,7 @@ export default async function EditCandidate({ params }: { params: Promise<{ id: 
   const s = await requirePage("editCandidates");
   const c = await prisma.candidate.findFirst({
     where: { id: (await params).id, tenantId: s.tenantId },
-    omit: { resumeText: true, customFields: true },
+    omit: { resumeText: true, customFields: true, stageUpdatedAt: true, interviewAt: true, joiningDate: true, billedOn: true },
   });
   if (!c) notFound();
   const { createdAt: _a, updatedAt: _b, ...initial } = c;

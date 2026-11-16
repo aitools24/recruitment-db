@@ -1,4 +1,5 @@
 import { prisma } from "./db";
+import { STAGES, placementTimer } from "./pipeline";
 
 type Row = { label: string; value: number; href?: string };
 
@@ -76,6 +77,22 @@ export async function dashboardData(tenantId: string) {
     }),
   ]);
 
+  // Placement pipeline: count per stage, plus billing timers for joined candidates.
+  const [stageCounts, placed, terms] = await Promise.all([
+    prisma.candidate.groupBy({ by: ["stage"], where: { tenantId, stage: { not: null } }, _count: true }),
+    prisma.candidate.findMany({ where: { tenantId, stage: { not: null }, joiningDate: { not: null } }, select: { joiningDate: true, billedOn: true } }),
+    prisma.tenant.findUniqueOrThrow({ where: { id: tenantId }, select: { billingAfterDays: true, guaranteeDays: true } }),
+  ]);
+  const timers = placed.map((p) => placementTimer(p.joiningDate!, terms, p.billedOn));
+  const pipeline = {
+    stages: STAGES.map((st) => ({ label: st.label, value: stageCounts.find((r) => r.stage === st.key)?._count ?? 0, color: st.color, href: `/candidates?stage=${st.key}` })),
+    total: stageCounts.reduce((a, r) => a + r._count, 0),
+    readyToBill: timers.filter((t) => t.joined && !t.billed && t.daysToBillable <= 0).length,
+    billSoon: timers.filter((t) => !t.billed && t.daysToBillable > 0 && t.daysToBillable <= 7).length,
+    inGuarantee: timers.filter((t) => t.billed && t.daysToGuaranteeEnd > 0).length,
+    terms,
+  };
+
   const q = (k: string, v: string) => `/candidates?${new URLSearchParams({ [k]: v })}`;
   const nr = (min: number, max?: number) => `/candidates?${new URLSearchParams({ noticeMin: String(min), ...(max !== undefined ? { noticeMax: String(max) } : {}) })}`;
   const noticeHref: Record<string, string> = { Immediate: nr(0, 0), "1–15 days": nr(1, 15), "16–30 days": nr(16, 30), "31–60 days": nr(31, 60), "61–90 days": nr(61, 90), "90+ days": nr(91) };
@@ -104,5 +121,6 @@ export async function dashboardData(tenantId: string) {
     }).filter((r) => r.value || r.label !== "Not known"),
     recentImports,
     recentActivity,
+    pipeline,
   };
 }

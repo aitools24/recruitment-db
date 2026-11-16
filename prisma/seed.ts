@@ -1,6 +1,7 @@
 // Demo data: `npm run db:seed`. Creates the "Demo Recruiters" workspace with 4 users (one per role) and 60 candidates.
 import { PrismaClient, type Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { seedDemoPipeline } from "./demo-pipeline";
 
 const prisma = new PrismaClient();
 
@@ -60,6 +61,7 @@ async function main() {
       },
     });
   }
+  await seedDemoPipeline(prisma);
   console.log("Seeded workspace 'Demo Recruiters'. Sign in as admin@demo.test / password123 (also manager@, recruiter@, viewer@).");
 }
 

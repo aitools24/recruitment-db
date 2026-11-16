@@ -181,6 +181,7 @@ export type SearchParams = {
   degree?: string;
   source?: string[];
   status?: string[];
+  stage?: string[];
   ownerId?: string;
   addedFrom?: string; addedTo?: string;
   sort?: "relevance" | "newest" | "updated" | "experience" | "name";
@@ -206,7 +207,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchParams {
     ctcMin: num("ctcMin"), ctcMax: num("ctcMax"),
     noticeMin: num("noticeMin"), noticeMax: num("noticeMax"),
     location: str("location"), company: str("company"), title: str("title"), degree: str("degree"),
-    source: list("source"), status: list("status"),
+    source: list("source"), status: list("status"), stage: list("stage"),
     ownerId: str("ownerId"),
     addedFrom: str("addedFrom"), addedTo: str("addedTo"),
     sort: (str("sort") as SearchParams["sort"]) || undefined,
@@ -245,6 +246,7 @@ function whereSql(tenantId: string, p: SearchParams) {
   if (p.degree) w.push(Prisma.sql`(c."highestDegree" ILIKE ${like(p.degree)} OR c."education" ILIKE ${like(p.degree)})`);
   if (p.source?.length) w.push(Prisma.sql`c."source" IN (${Prisma.join(p.source)})`);
   if (p.status?.length) w.push(Prisma.sql`c."status" IN (${Prisma.join(p.status)})`);
+  if (p.stage?.length) w.push(Prisma.sql`c."stage" IN (${Prisma.join(p.stage)})`);
   if (p.ownerId) w.push(Prisma.sql`c."ownerId" = ${p.ownerId}`);
   if (p.addedFrom) w.push(Prisma.sql`c."createdAt" >= ${new Date(p.addedFrom)}`);
   if (p.addedTo) w.push(Prisma.sql`c."createdAt" < ${new Date(new Date(p.addedTo).getTime() + 86400000)}`);
@@ -270,6 +272,7 @@ export type SearchRow = {
   currentCompany: string | null; currentTitle: string | null; industry: string | null;
   totalExperience: number | null; currentCtc: number | null; expectedCtc: number | null; noticePeriodDays: number | null;
   skills: string[]; tags: string[]; source: string | null; status: string; ownerName: string | null;
+  stage: string | null; clientName: string | null;
   createdAt: Date; updatedAt: Date; snippet: string | null;
 };
 
@@ -288,7 +291,7 @@ export async function searchCandidates(tenantId: string, p: SearchParams) {
     )
     SELECT c.id, c."fullName", c.email, c.phone, c.location, c."currentCompany", c."currentTitle", c.industry,
            c."totalExperience", c."currentCtc", c."expectedCtc", c."noticePeriodDays", c.skills, c.tags, c.source, c.status,
-           u.name AS "ownerName", c."createdAt", c."updatedAt",
+           c.stage, c."clientName", u.name AS "ownerName", c."createdAt", c."updatedAt",
            CASE WHEN ${snippet} LIKE '%[[[%' THEN ${snippet} ELSE NULL END AS snippet
       FROM page JOIN "Candidate" c ON c.id = page.id LEFT JOIN "User" u ON u.id = c."ownerId"
       ORDER BY ${orderSql(p)}`;
@@ -302,7 +305,8 @@ export async function exportCandidates(tenantId: string, p: SearchParams, limit:
            c."functionalArea", c."totalExperience", c."currentCtc", c."expectedCtc", c."noticePeriodDays",
            c."highestDegree", c.college, c.certifications, c.languages,
            array_to_string(c.skills, ', ') AS skills, array_to_string(c.tags, ', ') AS tags,
-           c.source, c.status, u.name AS "ownerName", c."linkedinUrl", c."createdAt", c."updatedAt"
+           c.source, c.status, c.stage AS "pipelineStage", c."clientName", c."jobTitle" AS "submittedFor",
+           c."joiningDate", c."billedOn", u.name AS "ownerName", c."linkedinUrl", c."createdAt", c."updatedAt"
       FROM "Candidate" c LEFT JOIN "User" u ON u.id = c."ownerId"
      WHERE ${whereSql(tenantId, p)} ORDER BY ${orderSql(p)} LIMIT ${limit}`;
 }
