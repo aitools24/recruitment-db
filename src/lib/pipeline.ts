@@ -1,12 +1,13 @@
+// Stage colours are the validated categorical series in fixed order (see colors.ts SERIES).
 // Placement pipeline: the stages a candidate moves through once they are put forward for a job,
 // and the billing / guarantee timers that run from their joining date.
 
 export const STAGES = [
-  { key: "INTERNAL", label: "Submitted to internal team", short: "Internal review", color: "#9085e9" },
-  { key: "CLIENT", label: "Submitted to client", short: "With client", color: "#3987e5" },
-  { key: "INTERVIEW", label: "Interview scheduled", short: "Interview", color: "#c98500" },
-  { key: "OFFER", label: "Offer", short: "Offer", color: "#d55181" },
-  { key: "ONBOARDING", label: "Onboarding", short: "Onboarding", color: "#199e70" },
+  { key: "INTERNAL", label: "Submitted to internal team", short: "Internal review", color: "#3987e5" },
+  { key: "CLIENT", label: "Submitted to client", short: "With client", color: "#d95926" },
+  { key: "INTERVIEW", label: "Interview scheduled", short: "Interview", color: "#199e70" },
+  { key: "OFFER", label: "Offer", short: "Offer", color: "#c98500" },
+  { key: "ONBOARDING", label: "Onboarding", short: "Onboarding", color: "#d55181" },
   { key: "BILLING", label: "Billing", short: "Billing", color: "#0ca30c" },
 ] as const;
 

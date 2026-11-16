@@ -11,7 +11,7 @@ const text = z.string().trim().max(200).transform((s) => s || null);
 const body = z.object({
   stage: z.enum(STAGE_KEYS).nullable().optional(),
   note: z.string().trim().max(2000).optional(),
-  clientName: text.nullable().optional(),
+  clientId: z.string().min(1).nullable().optional(),
   jobTitle: text.nullable().optional(),
   // datetime-local value from the browser, entered in India time
   interviewAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).transform((s) => new Date(`${s}:00+05:30`)).nullable().optional(),
@@ -29,14 +29,20 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
   const c = await prisma.candidate.findFirst({ where: { id, tenantId: s.tenantId } });
   if (!c) throw new HttpError(404, "Candidate not found");
 
-  const { stage, note, ...details } = b;
+  const { stage, note, clientId, ...details } = b;
+  let clientPatch: { clientId: string | null; clientName: string | null } | undefined;
+  if (clientId !== undefined) {
+    const cl = clientId ? await prisma.client.findFirst({ where: { id: clientId, tenantId: s.tenantId } }) : null;
+    if (clientId && !cl) throw new HttpError(400, "That client no longer exists");
+    clientPatch = { clientId: cl?.id ?? null, clientName: cl?.name ?? null };
+  }
   const next = stage === undefined ? c.stage : stage;
   const moved = next !== c.stage;
   const joiningDate = details.joiningDate !== undefined ? details.joiningDate : c.joiningDate;
   if (next && stageIndex(next) >= stageIndex("ONBOARDING") && !joiningDate) throw new HttpError(400, "Enter the joining date to move to Onboarding or Billing");
-  if ((next === "CLIENT" || stageIndex(next) > stageIndex("CLIENT")) && !(details.clientName ?? c.clientName)) throw new HttpError(400, "Enter the client name");
+  if ((next === "CLIENT" || stageIndex(next) > stageIndex("CLIENT")) && !(clientPatch ? clientPatch.clientId : c.clientId)) throw new HttpError(400, "Choose the client");
 
-  const data: Record<string, unknown> = { ...details };
+  const data: Record<string, unknown> = { ...details, ...clientPatch };
   if (moved) {
     data.stage = next;
     data.stageUpdatedAt = new Date();

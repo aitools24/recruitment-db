@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "./api";
@@ -9,7 +10,10 @@ export type PipelineProps = {
   id: string;
   canEdit: boolean;
   stage: string | null;
+  clientId: string | null;
   clientName: string | null;
+  clients: { id: string; name: string; status: string }[];
+  canAddClient: boolean;
   jobTitle: string | null;
   interviewAt: string | null; // ISO
   offerCtc: number | null;
@@ -82,8 +86,8 @@ function Stepper({ current, onPick }: { current: number; onPick?: (k: string) =>
 }
 
 function Details(p: PipelineProps) {
-  const rows: [string, string | null][] = [
-    ["Client", p.clientName],
+  const rows: [string, React.ReactNode][] = [
+    ["Client", p.clientName && (p.clientId ? <Link href={`/clients/${p.clientId}`} className="text-brand-300 hover:underline">{p.clientName}</Link> : p.clientName)],
     ["Position", p.jobTitle],
     ["Interview", p.interviewAt && new Date(p.interviewAt).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" })],
     ["Offered CTC", p.offerCtc !== null ? `${p.offerCtc} LPA` : null],
@@ -95,7 +99,7 @@ function Details(p: PipelineProps) {
   if (!shown.length) return null;
   return (
     <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
-      {shown.map(([k, v]) => <div key={k} className="min-w-0"><dt className="text-xs text-slate-400">{k}</dt><dd className="truncate text-slate-100" title={v!}>{v}</dd></div>)}
+      {shown.map(([k, v]) => <div key={k} className="min-w-0"><dt className="text-xs text-slate-400">{k}</dt><dd className="truncate text-slate-100" title={typeof v === "string" ? v : undefined}>{v}</dd></div>)}
     </dl>
   );
 }
@@ -164,14 +168,25 @@ function MoveForm(p: PipelineProps & { target: string; onClose: () => void }) {
   const router = useRouter();
   const [stage, setStage] = useState(p.target);
   const [f, setF] = useState({
-    clientName: p.clientName ?? "", jobTitle: p.jobTitle ?? "",
+    clientId: p.clientId ?? "", jobTitle: p.jobTitle ?? "",
     interviewAt: p.interviewAt ? istInput(p.interviewAt) : "", offerCtc: p.offerCtc?.toString() ?? "",
     joiningDate: p.joiningDate ?? "", billedOn: p.billedOn ?? "", billingAmount: p.billingAmount?.toString() ?? "", note: "",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [clients, setClients] = useState(p.clients);
+  const [newClient, setNewClient] = useState<string | null>(null);
   const idx = stageIndex(stage);
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
+  async function addClient() {
+    if (!newClient?.trim()) return;
+    try {
+      const c = await api<{ id: string; name: string; status: string }>("/api/clients", { method: "POST", json: { name: newClient } });
+      setClients([...clients, c].sort((a, b) => a.name.localeCompare(b.name)));
+      setF((x) => ({ ...x, clientId: c.id }));
+      setNewClient(null); setErr("");
+    } catch (x) { setErr((x as Error).message); }
+  }
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
   const num = (v: string) => (v.trim() === "" ? null : Number(v));
 
   async function save(e: React.FormEvent) {
@@ -182,7 +197,7 @@ function MoveForm(p: PipelineProps & { target: string; onClose: () => void }) {
         method: "POST",
         json: {
           stage, note: f.note || undefined,
-          clientName: f.clientName, jobTitle: f.jobTitle,
+          clientId: f.clientId || null, jobTitle: f.jobTitle,
           interviewAt: f.interviewAt || null, offerCtc: num(f.offerCtc),
           joiningDate: f.joiningDate || null, billedOn: f.billedOn || null, billingAmount: num(f.billingAmount),
         },
@@ -208,7 +223,22 @@ function MoveForm(p: PipelineProps & { target: string; onClose: () => void }) {
         <span className="accent-chip mb-1.5" style={{ ["--accent" as string]: stageInfo(stage)?.color }}>{stage === p.stage ? "Current stage" : p.stage ? `From ${stageInfo(p.stage)?.short}` : "New"}</span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={`Client${idx >= 1 ? " *" : ""}`}><input className="input" value={f.clientName} onChange={set("clientName")} placeholder="Company you're submitting to" /></Field>
+        <Field label={`Client${idx >= 1 ? " *" : ""}`}>
+          {newClient === null ? (
+            <select className="input" value={f.clientId} onChange={(e) => (e.target.value === "__new" ? setNewClient("") : set("clientId")(e))}>
+              <option value="">Choose a client…</option>
+              {clients.filter((c) => c.status !== "Inactive" || c.id === f.clientId).map((c) => <option key={c.id} value={c.id}>{c.name}{c.status !== "Active" ? ` (${c.status})` : ""}</option>)}
+              {p.canAddClient && <option value="__new">+ Add a new client…</option>}
+            </select>
+          ) : (
+            <div className="flex gap-2">
+              <input autoFocus className="input" value={newClient} onChange={(e) => setNewClient(e.target.value)} placeholder="New client's company name"
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addClient(); } }} />
+              <button type="button" className="btn-secondary" onClick={addClient}>Add</button>
+              <button type="button" className="btn-ghost" onClick={() => setNewClient(null)}>×</button>
+            </div>
+          )}
+        </Field>
         <Field label="Position"><input className="input" value={f.jobTitle} onChange={set("jobTitle")} placeholder="e.g. Senior Java Developer" /></Field>
         {idx >= 2 && <Field label="Interview date and time"><input type="datetime-local" className="input" value={f.interviewAt} onChange={set("interviewAt")} /></Field>}
         {idx >= 3 && <Field label="Offered CTC (LPA)"><input type="number" step="0.1" min="0" className="input" value={f.offerCtc} onChange={set("offerCtc")} /></Field>}

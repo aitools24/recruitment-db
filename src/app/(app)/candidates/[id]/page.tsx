@@ -9,6 +9,7 @@ import { NEUTRAL, SOURCE_COLOR, STATUS_COLOR, accent } from "@/lib/colors";
 import { DeleteCandidate, NotesPanel, ResumeUpload, TagEditor } from "@/components/ProfileWidgets";
 import { PipelineCard } from "@/components/Pipeline";
 import { stageInfo } from "@/lib/pipeline";
+import { termsFor } from "@/lib/clients";
 
 const dt = (d: Date) => d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
@@ -25,7 +26,11 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
     },
   });
   if (!c) notFound();
-  const terms = await prisma.tenant.findUniqueOrThrow({ where: { id: s.tenantId }, select: { billingAfterDays: true, guaranteeDays: true } });
+  const [tenantTerms, clients] = await Promise.all([
+    prisma.tenant.findUniqueOrThrow({ where: { id: s.tenantId }, select: { billingAfterDays: true, guaranteeDays: true } }),
+    prisma.client.findMany({ where: { tenantId: s.tenantId }, orderBy: { name: "asc" }, select: { id: true, name: true, status: true, billingAfterDays: true, guaranteeDays: true } }),
+  ]);
+  const terms = termsFor(clients.find((x) => x.id === c.clientId), tenantTerms);
   const ymd = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
   const st = stageInfo(c.stage);
   await audit(s, "VIEW", "Viewed profile", { candidateId: c.id });
@@ -73,7 +78,8 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
       </div>
 
       <PipelineCard
-        id={c.id} canEdit={canEdit} stage={c.stage} clientName={c.clientName} jobTitle={c.jobTitle}
+        id={c.id} canEdit={canEdit} stage={c.stage} clientId={c.clientId} clientName={c.clientName}
+        clients={clients.map(({ id, name, status }) => ({ id, name, status }))} canAddClient={can(s.role, "editClients")} jobTitle={c.jobTitle}
         interviewAt={c.interviewAt?.toISOString() ?? null} offerCtc={c.offerCtc} joiningDate={ymd(c.joiningDate)}
         billedOn={ymd(c.billedOn)} billingAmount={c.billingAmount} terms={terms}
         history={c.stageEvents.map((e) => ({ id: e.id, from: e.fromStage, to: e.toStage, note: e.note, user: e.user?.name ?? "Deleted user", at: dt(e.createdAt) }))}

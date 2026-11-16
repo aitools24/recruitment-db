@@ -3,30 +3,46 @@ import { requirePage } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { STAGES, addDays, fmtDate, placementTimer, timerBadge, todayIST } from "@/lib/pipeline";
 import { accent } from "@/lib/colors";
+import { termsFor } from "@/lib/clients";
+import { ClientStacks, DaysInStage, StageColumns } from "@/components/PipelineCharts";
+import { Panel } from "@/components/DashboardCharts";
 
 const TONE = { wait: "#c98500", due: "#e66767", ok: "#0ca30c" } as const;
 const ist = (d: Date) => d.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
 export default async function PipelinePage({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
   const s = await requirePage("viewCandidates");
-  const client = (await searchParams).client?.trim() || undefined;
+  const clientId = (await searchParams).client?.trim() || undefined;
   const [terms, rows, clients] = await Promise.all([
     prisma.tenant.findUniqueOrThrow({ where: { id: s.tenantId }, select: { billingAfterDays: true, guaranteeDays: true } }),
     prisma.candidate.findMany({
-      where: { tenantId: s.tenantId, stage: { not: null }, ...(client ? { clientName: { equals: client, mode: "insensitive" } } : {}) },
+      where: { tenantId: s.tenantId, stage: { not: null }, ...(clientId ? { clientId } : {}) },
       orderBy: { stageUpdatedAt: "desc" },
-      select: { id: true, fullName: true, stage: true, stageUpdatedAt: true, clientName: true, jobTitle: true, interviewAt: true, joiningDate: true, billedOn: true, owner: { select: { name: true } } },
+      select: {
+        id: true, fullName: true, stage: true, stageUpdatedAt: true, clientId: true, clientName: true, jobTitle: true, interviewAt: true, joiningDate: true, billedOn: true,
+        owner: { select: { name: true } }, client: { select: { billingAfterDays: true, guaranteeDays: true } },
+      },
     }),
-    prisma.candidate.findMany({ where: { tenantId: s.tenantId, clientName: { not: null } }, distinct: ["clientName"], select: { clientName: true }, orderBy: { clientName: "asc" } }),
+    prisma.client.findMany({ where: { tenantId: s.tenantId }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);
+  const client = clients.find((c) => c.id === clientId)?.name;
 
   const now = new Date();
   const today = todayIST(now).getTime();
-  const cards = rows.map((r) => ({ ...r, timer: r.joiningDate ? placementTimer(r.joiningDate, terms, r.billedOn, now) : null }));
+  const cards = rows.map((r) => ({ ...r, timer: r.joiningDate ? placementTimer(r.joiningDate, termsFor(r.client, terms), r.billedOn, now) : null }));
   const readyToBill = cards.filter((c) => c.timer?.joined && !c.timer.billed && c.timer.daysToBillable <= 0);
   const billSoon = cards.filter((c) => c.timer && !c.timer.billed && c.timer.daysToBillable > 0 && c.timer.daysToBillable <= 7);
   const guaranteeSoon = cards.filter((c) => c.timer?.billed && c.timer.daysToGuaranteeEnd > 0 && c.timer.daysToGuaranteeEnd <= 14);
   const interviews = cards.filter((c) => c.stage === "INTERVIEW" && c.interviewAt && c.interviewAt.getTime() >= now.getTime() - 3600000 && c.interviewAt.getTime() < today + 8 * 86400000);
+
+  const clientMap = new Map<string, { id: string | null; name: string; counts: Record<string, number> }>();
+  for (const c of cards) {
+    const k = c.clientId ?? "none";
+    const e = clientMap.get(k) ?? { id: c.clientId, name: c.clientName ?? "No client yet", counts: {} };
+    e.counts[c.stage!] = (e.counts[c.stage!] ?? 0) + 1;
+    clientMap.set(k, e);
+  }
+  const byClient = [...clientMap.values()].sort((a, b) => Object.values(b.counts).reduce((x, y) => x + y, 0) - Object.values(a.counts).reduce((x, y) => x + y, 0)).slice(0, 8);
 
   const alerts = [
     { title: "Ready to bill", color: "#e66767", items: readyToBill.map((c) => ({ c, sub: `Billable since ${fmtDate(c.timer!.billableOn)}` })) },
@@ -41,13 +57,13 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Pipeline</h1>
           <p className="text-sm text-slate-400">
-            {rows.length} candidate{rows.length === 1 ? "" : "s"} in progress. Billing opens {terms.billingAfterDays} days after joining; guarantee lasts {terms.guaranteeDays} days.
+            {rows.length} candidate{rows.length === 1 ? "" : "s"} in progress. Default terms: billing {terms.billingAfterDays} days after joining, {terms.guaranteeDays}-day guarantee (clients can have their own).
           </p>
         </div>
         <form className="flex items-center gap-2">
-          <select name="client" defaultValue={client ?? ""} className="input w-52">
+          <select name="client" defaultValue={clientId ?? ""} className="input w-52">
             <option value="">All clients</option>
-            {clients.map((c) => <option key={c.clientName} value={c.clientName!}>{c.clientName}</option>)}
+            {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <button className="btn-secondary">Filter</button>
         </form>
@@ -73,6 +89,23 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
           </section>
         ))}
       </div>
+
+      {rows.length > 0 && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Panel title="Candidates by stage" sub="Click a column to see those candidates">
+            <StageColumns counts={Object.fromEntries(STAGES.map((st) => [st.key, cards.filter((c) => c.stage === st.key).length]))} />
+          </Panel>
+          <Panel title="Stages by client" sub="Where each client's candidates are">
+            <ClientStacks rows={byClient} />
+          </Panel>
+          <Panel title="Average days in current stage" sub="Long bars show where candidates get stuck" color="#9085e9">
+            <DaysInStage rows={STAGES.map((st) => {
+              const d = cards.filter((c) => c.stage === st.key && c.stageUpdatedAt).map((c) => (now.getTime() - c.stageUpdatedAt!.getTime()) / 86400000);
+              return { key: st.key, label: st.label, n: d.length, avg: d.length ? Math.round(d.reduce((a, b) => a + b, 0) / d.length) : null };
+            })} />
+          </Panel>
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <div className="card p-10 text-center">

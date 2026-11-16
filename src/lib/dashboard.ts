@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import { STAGES, placementTimer } from "./pipeline";
+import { termsFor } from "./clients";
 
 type Row = { label: string; value: number; href?: string };
 
@@ -80,10 +81,10 @@ export async function dashboardData(tenantId: string) {
   // Placement pipeline: count per stage, plus billing timers for joined candidates.
   const [stageCounts, placed, terms] = await Promise.all([
     prisma.candidate.groupBy({ by: ["stage"], where: { tenantId, stage: { not: null } }, _count: true }),
-    prisma.candidate.findMany({ where: { tenantId, stage: { not: null }, joiningDate: { not: null } }, select: { joiningDate: true, billedOn: true } }),
+    prisma.candidate.findMany({ where: { tenantId, stage: { not: null }, joiningDate: { not: null } }, select: { joiningDate: true, billedOn: true, client: { select: { billingAfterDays: true, guaranteeDays: true } } } }),
     prisma.tenant.findUniqueOrThrow({ where: { id: tenantId }, select: { billingAfterDays: true, guaranteeDays: true } }),
   ]);
-  const timers = placed.map((p) => placementTimer(p.joiningDate!, terms, p.billedOn));
+  const timers = placed.map((p) => placementTimer(p.joiningDate!, termsFor(p.client, terms), p.billedOn));
   const pipeline = {
     stages: STAGES.map((st) => ({ label: st.label, value: stageCounts.find((r) => r.stage === st.key)?._count ?? 0, color: st.color, href: `/candidates?stage=${st.key}` })),
     total: stageCounts.reduce((a, r) => a + r._count, 0),
